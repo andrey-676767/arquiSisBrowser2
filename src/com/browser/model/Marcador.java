@@ -1,36 +1,26 @@
 package com.browser.model;
 
 /**
- * Entidad que representa un marcador de navegación guardado por el usuario.
+ * Entidad que representa un marcador (bookmark) guardado por el usuario.
  *
- * <p>Encapsula la URL, el título y la categoría del sitio web marcado.
- * El constructor vacío crea un marcador "en blanco" con cadenas vacías,
- * siguiendo el comportamiento original del código legado que usaba
- * {@code Marcador[]} inicializados con instancias vacías para representar
- * espacios libres en favoritos.</p>
- *
- * <p>Esta clase no depende de ninguna colección nativa ni de la capa
- * de persistencia.</p>
- *
- * @author Refactorización Fase 1
- * @version 1.0
+ * <p>Almacena la URL destino, un título legible y la categoría bajo la cual
+ * se agrupa en el {@code ArbolBinario<Categoria>}. Es la unidad mínima de
+ * información que persiste {@code JSONRepo} y que gestiona {@code MarcadorService}.</p>
  */
 public class Marcador {
 
-    /** URL del sitio web marcado. */
+    /** URL del sitio marcado. */
     private String url;
 
-    /** Título descriptivo del marcador. */
+    /** Título o nombre descriptivo del marcador. */
     private String titulo;
 
-    /** Categoría a la que pertenece el marcador. */
+    /** Nombre de la categoría a la que pertenece este marcador. */
     private String categoria;
 
-    // ── Constructores ────────────────────────────────────────────────────────
-
     /**
-     * Construye un marcador vacío con todos los campos como cadena vacía.
-     * Se usa como marcador de "posición libre" en la lista de favoritos.
+     * Construye un marcador vacío con cadenas vacías en todos sus campos.
+     * Útil para inicializar arreglos o colecciones antes de asignar valores.
      */
     public Marcador() {
         this.url = "";
@@ -39,11 +29,11 @@ public class Marcador {
     }
 
     /**
-     * Construye un marcador con todos sus atributos definidos.
+     * Construye un marcador con todos sus campos especificados.
      *
-     * @param url       URL del sitio web.
-     * @param titulo    Título descriptivo del marcador.
-     * @param categoria Categoría a la que pertenece.
+     * @param url       URL del sitio; no debe ser {@code null}
+     * @param titulo    nombre o título del marcador; no debe ser {@code null}
+     * @param categoria nombre de la categoría a la que pertenece; no debe ser {@code null}
      */
     public Marcador(String url, String titulo, String categoria) {
         this.url = url;
@@ -51,82 +41,83 @@ public class Marcador {
         this.categoria = categoria;
     }
 
-    // ── Getters ──────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Getters y setters
+    // -------------------------------------------------------------------------
 
     /**
      * Retorna la URL del marcador.
      *
-     * @return La URL almacenada.
+     * @return URL del sitio
      */
     public String getUrl() {
         return url;
     }
 
     /**
-     * Retorna el título del marcador.
-     *
-     * @return El título almacenado.
-     */
-    public String getTitulo() {
-        return titulo;
-    }
-
-    /**
-     * Retorna la categoría del marcador.
-     *
-     * @return La categoría almacenada.
-     */
-    public String getCategoria() {
-        return categoria;
-    }
-
-    // ── Setters ──────────────────────────────────────────────────────────────
-
-    /**
      * Establece la URL del marcador.
      *
-     * @param url Nueva URL.
+     * @param url nueva URL; no debe ser {@code null}
      */
     public void setUrl(String url) {
         this.url = url;
     }
 
     /**
+     * Retorna el título del marcador.
+     *
+     * @return título o nombre descriptivo
+     */
+    public String getTitulo() {
+        return titulo;
+    }
+
+    /**
      * Establece el título del marcador.
      *
-     * @param titulo Nuevo título.
+     * @param titulo nuevo título; no debe ser {@code null}
      */
     public void setTitulo(String titulo) {
         this.titulo = titulo;
     }
 
     /**
+     * Retorna el nombre de la categoría a la que pertenece este marcador.
+     *
+     * @return nombre de la categoría
+     */
+    public String getCategoria() {
+        return categoria;
+    }
+
+    /**
      * Establece la categoría del marcador.
      *
-     * @param categoria Nueva categoría.
+     * @param categoria nuevo nombre de categoría; no debe ser {@code null}
      */
     public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
 
-    // ── Utilidades ───────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Utilidades
+    // -------------------------------------------------------------------------
 
     /**
-     * Imprime en consola la información resumida del marcador en formato
-     * {@code Nombre: X URL: Y Categoria: Z}.
+     * Imprime en consola la información del marcador en formato legible.
      */
     public void mostrarInfo() {
-        System.out.print("Nombre: " + titulo + " URL: " + url + " Categoria: " + categoria);
+        System.out.print("Nombre: " + titulo + " | URL: " + url + " | Categoria: " + categoria);
     }
 
     /**
-     * Retorna el título como representación textual del marcador.
-     * Compatibilidad con {@code Arrays.toString(marcadores[])} del controlador original.
+     * Retorna el título del marcador como representación en cadena,
+     * coherente con cómo se muestra en listas y árboles.
      *
-     * @return El título del marcador.
+     * @return título del marcador
      */
     @Override
     public String toString() {
-        return titulo;
+        return this.titulo;
     }
 }

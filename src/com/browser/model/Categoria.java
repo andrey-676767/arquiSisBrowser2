@@ -3,41 +3,39 @@ package com.browser.model;
 import com.browser.structures.ListaDoble;
 
 /**
- * Entidad que agrupa {@link Marcador}es bajo una letra inicial común.
+ * Agrupación de {@link Marcador} bajo un nombre común.
  *
- * <p>Implementa {@link Comparable} para poder ser almacenada de forma
- * ordenada en el {@code ArbolBinario<Categoria>}. El orden se establece
- * según la posición de la letra inicial del nombre de la categoría en el
- * alfabeto (A=0, B=1, … Z=25).</p>
+ * <p>Implementa {@link Comparable} usando el orden alfabético de la primera
+ * letra del nombre, lo que permite mantener las categorías ordenadas dentro
+ * del {@code ArbolBinario<Categoria>} que gestiona {@code MarcadorService}.</p>
  *
- * <p>El atributo {@code contenido} usa exclusivamente {@link ListaDoble}
- * — prohibido el uso de {@code java.util.List} o derivados.</p>
- *
- * @author Refactorización Fase 1
- * @version 1.0
+ * <p>El campo {@code contenido} es público para permitir que el árbol y el
+ * servicio inserten marcadores directamente, manteniendo compatibilidad con
+ * el diseño original.</p>
  */
 public class Categoria implements Comparable<Categoria> {
 
-    /** Nombre o letra inicial que identifica la categoría. */
+    /** Nombre de la categoría (p. ej. "Tecnología", "Noticias"). */
     private String nombre;
 
     /**
-     * Lista de marcadores pertenecientes a esta categoría.
-     * Se usa {@link ListaDoble} como implementación exclusiva.
+     * Lista de marcadores que pertenecen a esta categoría.
+     * Acceso público para compatibilidad con operaciones del árbol.
      */
-    private ListaDoble<Marcador> contenido;
-
-    /** Tabla del alfabeto en mayúsculas para calcular el orden de comparación. */
-    private static final String[] ALFABETO = {
-        "A","B","C","D","E","F","G","H","I","J",
-        "K","L","M","N","O","P","Q","R","S","T",
-        "U","V","W","X","Y","Z"
-    };
-
-    // ── Constructores ────────────────────────────────────────────────────────
+    public ListaDoble<Marcador> contenido;
 
     /**
-     * Construye una categoría vacía con el nombre "Por defecto".
+     * Alfabeto en mayúsculas usado para calcular el índice de comparación.
+     * Permite ordenar categorías por la inicial de su nombre.
+     */
+    public static final String[] abcd = {
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+            "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+            "U", "V", "W", "X", "Y", "Z"
+    };
+
+    /**
+     * Construye una categoría vacía con nombre "Por defecto" y lista vacía.
      */
     public Categoria() {
         this.nombre = "Por defecto";
@@ -45,166 +43,141 @@ public class Categoria implements Comparable<Categoria> {
     }
 
     /**
-     * Construye una categoría con el nombre indicado e inserta el primer
-     * marcador si no es {@code null}.
+     * Construye una categoría con nombre dado e inserta {@code inicial} como
+     * primer marcador.
      *
-     * <p>Si {@code inicial} es {@code null} la categoría queda vacía pero
-     * ya identificada por su nombre — útil para crear categorías de búsqueda
-     * temporales dentro del árbol.</p>
-     *
-     * @param nombre  Nombre (o letra inicial) de la categoría.
-     * @param inicial Primer marcador a incluir, o {@code null} si ninguno.
+     * @param nombre  nombre de la categoría; se usa su primera letra (mayúscula)
+     *                como clave de ordenamiento en el árbol
+     * @param inicial primer {@link Marcador} de la categoría; puede ser
+     *                {@code null} si solo se crea el contenedor
      */
     public Categoria(String nombre, Marcador inicial) {
         this.nombre = nombre;
         this.contenido = new ListaDoble<>();
         if (inicial != null) {
-            this.contenido.insertarAlPrincipio(inicial);
+            contenido.insertarAlPrincipio(inicial);
         }
     }
 
-    // ── Comparable ───────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Comparable
+    // -------------------------------------------------------------------------
 
     /**
-     * Compara esta categoría con otra usando la posición de su letra inicial
-     * en el alfabeto.
+     * Compara esta categoría con {@code o} según el índice alfabético de su
+     * primera letra, produciendo el orden ascendente A → Z que requiere el BST.
      *
-     * @param otra La categoría con la que se compara.
-     * @return Valor negativo si esta precede a {@code otra}, 0 si son iguales,
-     *         positivo si esta sucede a {@code otra}.
+     * @param o categoría con la que comparar
+     * @return negativo si esta categoría va antes, cero si son iguales,
+     *         positivo si va después
      */
     @Override
-    public int compareTo(Categoria otra) {
-        int indiceThis = buscarIndiceAlfabeto(this.nombre);
-        int indiceOtra = buscarIndiceAlfabeto(otra.nombre);
-        return Integer.compare(indiceThis, indiceOtra);
+    public int compareTo(Categoria o) {
+        int oInt = buscarIndex(o.nombre);
+        int thisInt = buscarIndex(this.nombre);
+        return Integer.compare(thisInt, oInt);
     }
 
     /**
-     * Busca la posición en el alfabeto de la primera letra del nombre de
-     * la categoría.
+     * Retorna el índice (0–25) de la primera letra de {@code categoria}
+     * dentro del alfabeto {@link #abcd}.
      *
-     * @param categoria Nombre de la categoría.
-     * @return Índice 0-based en {@link #ALFABETO}, o -1 si no se encuentra.
+     * @param categoria nombre cuya inicial se busca
+     * @return índice de 0 a 25, o {@code -1} si no se encuentra
      */
-    private static int buscarIndiceAlfabeto(String categoria) {
-        if (categoria == null || categoria.isEmpty()) return -1;
-		
+    private static int buscarIndex(String categoria) {
         String letra = categoria.substring(0, 1).toUpperCase();
-		
-        for (int i = 0; i < ALFABETO.length; i++) {
-            if (ALFABETO[i].equals(letra)) return i;
+        for (int index = 0; index < abcd.length; index++) {
+            if (abcd[index].equals(letra)) {
+                return index;
+            }
         }
         return -1;
     }
 
-    // ── Operaciones sobre el contenido ───────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Operaciones sobre marcadores
+    // -------------------------------------------------------------------------
 
     /**
-     * Agrega un marcador al final del contenido de esta categoría.
+     * Agrega un {@link Marcador} al final del contenido de esta categoría.
      *
-     * @param marcador Marcador a agregar.
+     * @param marcador el marcador a agregar; no debe ser {@code null}
      */
-    public void agregarMarcador(Marcador marcador) {
-        this.contenido.insertarAlFinal(marcador);
+    public void agregar(Marcador marcador) {
+        contenido.insertarAlFinal(marcador);
     }
 
     /**
-     * Elimina de la lista todos los marcadores cuyo título coincida
-     * (exactamente) con el nombre proporcionado.
+     * Elimina el primer marcador cuyo título coincida con {@code titulo}.
+     * Si no existe ninguno con ese título, la operación no tiene efecto.
      *
-     * @param nombre Título del marcador a eliminar.
+     * @param titulo título del marcador a eliminar
      */
-    public void borrarMarcador(String nombre) {
-        for (int i = 0; i < this.contenido.size(); i++) {
-            Marcador aux = this.contenido.obtener(i);
-            if (aux.getTitulo().equals(nombre)) {
-                this.contenido.remover(i);
-                // Ajustamos el índice porque la lista se contrajo
-                i--;
+    public void borrar(String titulo) {
+        for (int i = 0; i < contenido.size(); i++) {
+            if (contenido.obtener(i).getTitulo().equals(titulo)) {
+                contenido.remover(i);
+                return;
             }
         }
     }
 
     /**
-     * Extrae (elimina y retorna) el primer marcador con el título indicado.
+     * Elimina y retorna el marcador cuyo título coincida con {@code titulo}.
+     * Equivalente a un "pop" selectivo; útil para mover marcadores entre
+     * categorías o a favoritos.
      *
-     * <p>Se usa para mover un marcador desde "otros" hacia "favoritos".</p>
-     *
-     * @param nombre Título del marcador a extraer.
-     * @return El marcador extraído, o {@code null} si no se encontró.
+     * @param titulo título del marcador a extraer
+     * @return el {@link Marcador} extraído, o {@code null} si no se encontró
      */
-    public Marcador pop(String nombre) {
-        for (int i = 0; i < this.contenido.size(); i++) {
-            Marcador aux = this.contenido.obtener(i);
-            if (aux.getTitulo().equals(nombre)) {
-                return this.contenido.remover(i);
+    public Marcador pop(String titulo) {
+        for (int i = 0; i < contenido.size(); i++) {
+            if (contenido.obtener(i).getTitulo().equals(titulo)) {
+                return contenido.remover(i);
             }
         }
         return null;
     }
 
     /**
-     * Retorna (sin extraer) el primer marcador con el título indicado.
+     * Busca y retorna el marcador cuyo título coincida con {@code titulo}
+     * sin eliminarlo de la lista.
      *
-     * @param nombre Título del marcador a buscar.
-     * @return El marcador encontrado, o {@code null} si no existe.
+     * @param titulo título del marcador a buscar
+     * @return el {@link Marcador} encontrado, o {@code null} si no existe
      */
-    public Marcador obtenerMarcador(String nombre) {
-        for (int i = 0; i < this.contenido.size(); i++) {
-            Marcador aux = this.contenido.obtener(i);
-            if (aux.getTitulo().equals(nombre)) {
+    public Marcador obtener(String titulo) {
+        for (int i = 0; i < contenido.size(); i++) {
+            Marcador aux = contenido.obtener(i);
+            if (aux.getTitulo().equals(titulo)) {
                 return aux;
             }
         }
         return null;
     }
 
-    // ── Getters ──────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
 
     /**
-     * Retorna el nombre (letra inicial) de la categoría.
+     * Retorna el nombre de la categoría.
      *
-     * @return El nombre de la categoría.
+     * @return nombre de la categoría
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Retorna la lista de marcadores de esta categoría.
+     * Retorna una representación en cadena con el nombre y el contenido
+     * de la categoría.
      *
-     * <p>Se expone para que {@code DatabaseManager} pueda invocar
-     * {@code insertarAlFinal} directamente al reconstruir el árbol
-     * desde la base de datos, manteniendo compatibilidad con el
-     * código original.</p>
-     *
-     * @return La {@link ListaDoble} de {@link Marcador}es.
-     */
-    public ListaDoble<Marcador> getContenido() {
-        return contenido;
-    }
-
-    /**
-     * Retorna el número de marcadores en esta categoría.
-     *
-     * @return Tamaño del contenido.
-     */
-    public int cantidadMarcadores() {
-        return contenido.size();
-    }
-
-    // ── Utilidades ───────────────────────────────────────────────────────────
-
-    /**
-     * Retorna una representación textual de la categoría que incluye su nombre
-     * y el listado de sus marcadores.
-     *
-     * @return Cadena con nombre y contenido de la categoría.
+     * @return cadena con formato {@code nombre\n(contenido)}
      */
     @Override
     public String toString() {
-        String contenidoStr = contenido.toString();
-        return this.nombre + "\n" + (contenidoStr != null ? contenidoStr : "(vacía)");
+        return this.nombre + "\n" + contenido.toString();
     }
 }

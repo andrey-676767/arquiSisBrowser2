@@ -1,263 +1,126 @@
 package com.browser.structures;
 
 /**
- * Nodo interno del árbol binario de búsqueda genérico.
+ * Árbol binario de búsqueda (BST) genérico.
  *
- * <p>Almacena un dato comparable y mantiene referencias a sus dos
- * hijos (izquierdo y derecho). La comparación entre nodos se delega
- * al método {@link Comparable#compareTo} del dato almacenado.</p>
+ * <p>Soporta inserción ordenada, eliminación con los tres casos clásicos
+ * (nodo hoja, nodo con un hijo, nodo con dos hijos), búsqueda por valor
+ * y múltiples estrategias de recorrido (BFS, DFS, pre-orden, in-orden,
+ * pos-orden).</p>
  *
- * <p>Clase de infraestructura — no debe ser instanciada directamente
- * desde capas superiores al paquete de estructuras.</p>
+ * <p>Se usa en el sistema para almacenar el árbol de {@code Categoria},
+ * cuyo orden lexicográfico determina la posición de cada nodo.</p>
  *
- * @param <T> Tipo del dato, que debe implementar {@link Comparable}.
- * @author Refactorización Fase 1
- * @version 1.0
- */
-class NodoArbol<T extends Comparable<T>> {
-
-    /** Dato almacenado en este nodo del árbol. */
-    protected T info;
-
-    /** Hijo derecho (valores mayores que este nodo). */
-    protected NodoArbol<T> hijoDerecha;
-
-    /** Hijo izquierdo (valores menores que este nodo). */
-    protected NodoArbol<T> hijoIzquierda;
-
-    /**
-     * Construye un nodo hoja con el dato proporcionado y sin hijos.
-     *
-     * @param dato Valor a almacenar en el nodo.
-     */
-    public NodoArbol(T dato) {
-        this.info = dato;
-        this.hijoDerecha = null;
-        this.hijoIzquierda = null;
-    }
-
-    /**
-     * Compara el dato de este nodo con otro valor usando
-     * {@link Comparable#compareTo}.
-     *
-     * @param otro Valor con el que se compara.
-     * @return Valor negativo, cero o positivo según la ordenación natural.
-     */
-    public int compararCon(T otro) {
-        return this.info.compareTo(otro);
-    }
-
-    /**
-     * Retorna el dato almacenado en este nodo.
-     *
-     * @return El dato del nodo.
-     */
-    public T getInfo() {
-        return info;
-    }
-
-    /**
-     * Retorna el hijo derecho de este nodo.
-     *
-     * @return Nodo hijo derecho, o {@code null} si no existe.
-     */
-    public NodoArbol<T> getHijoDerecha() {
-        return hijoDerecha;
-    }
-
-    /**
-     * Retorna el hijo izquierdo de este nodo.
-     *
-     * @return Nodo hijo izquierdo, o {@code null} si no existe.
-     */
-    public NodoArbol<T> getHijoIzquierda() {
-        return hijoIzquierda;
-    }
-}
-
-/**
- * Árbol Binario de Búsqueda (ABB) genérico y ordenado.
- *
- * <p>Almacena elementos que implementan {@link Comparable} manteniendo
- * la propiedad BST: todo elemento en el subárbol izquierdo es menor que
- * la raíz, y todo elemento en el subárbol derecho es mayor. Ofrece
- * inserción ordenada, búsqueda, obtención y eliminación con sucesor
- * inorden para el caso de dos hijos.</p>
- *
- * <p>Esta estructura es la columna vertebral del índice de marcadores,
- * organizados por {@code Categoria} que implementa {@link Comparable}.</p>
- *
- * <p>Los recorridos (inOrden, preOrden, posOrden, por anchura y por
- * profundidad) se conservan íntegramente del código original e internamente
- * usan {@link ListaDoble} y {@link Pila} en lugar de colecciones nativas.</p>
- *
- * @param <T> Tipo del dato almacenado; debe implementar {@link Comparable}.
- * @author Refactorización Fase 1
- * @version 1.0
+ * @param <T> tipo de dato almacenado; debe implementar {@link Comparable}
  */
 public class ArbolBinario<T extends Comparable<T>> {
 
     /** Nodo raíz del árbol. */
     public NodoArbol<T> raiz;
 
-    // ── Constructor ──────────────────────────────────────────────────────────
-
     /**
-     * Construye un árbol con un único nodo raíz que contiene el dato indicado.
+     * Construye un árbol con un único nodo raíz que contiene {@code info}.
      *
-     * @param info Dato del nodo raíz inicial.
+     * @param info el dato del nodo raíz
      */
     public ArbolBinario(T info) {
-        this.raiz = new NodoArbol<>(info);
+        raiz = new NodoArbol<>(info);
     }
 
-    // ── Inserción ────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Inserción
+    // -------------------------------------------------------------------------
 
     /**
-     * Inserta un hijo derecho al nodo indicado, solo si el nodo existe y
-     * no tiene aún hijo derecho.
+     * Inserta {@code dato} como hijo derecho de {@code p}, si ese enlace está libre.
      *
-     * @param padre Nodo al que se le añade el hijo derecho.
-     * @param dato  Dato del nuevo nodo.
-     * @return La referencia al nuevo nodo, o {@code null} si no se pudo insertar.
+     * @param p    el nodo padre
+     * @param dato el valor a insertar
+     * @return el nuevo {@link NodoArbol} creado, o {@code null} si {@code p} es
+     *         {@code null} o ya tiene hijo derecho
      */
-    public NodoArbol<T> insertarDerecha(NodoArbol<T> padre, T dato) {
-        if (padre == null || padre.hijoDerecha != null) {
-            return null;
-        }
-        NodoArbol<T> nuevo = new NodoArbol<>(dato);
-        padre.hijoDerecha = nuevo;
-        return nuevo;
+    public NodoArbol<T> insertarDerecha(NodoArbol<T> p, T dato) {
+        if (p == null || p.hijoDerecha != null) return null;
+        NodoArbol<T> referencia = new NodoArbol<>(dato);
+        p.hijoDerecha = referencia;
+        return referencia;
     }
 
     /**
-     * Inserta un hijo izquierdo al nodo indicado, solo si el nodo existe y
-     * no tiene aún hijo izquierdo.
+     * Inserta {@code dato} como hijo izquierdo de {@code p}, si ese enlace está libre.
      *
-     * @param padre Nodo al que se le añade el hijo izquierdo.
-     * @param dato  Dato del nuevo nodo.
-     * @return La referencia al nuevo nodo, o {@code null} si no se pudo insertar.
+     * @param p    el nodo padre
+     * @param dato el valor a insertar
+     * @return el nuevo {@link NodoArbol} creado, o {@code null} si {@code p} es
+     *         {@code null} o ya tiene hijo izquierdo
      */
-    public NodoArbol<T> insertarIzquierda(NodoArbol<T> padre, T dato) {
-        if (padre == null || padre.hijoIzquierda != null) {
-            return null;
-        }
-        NodoArbol<T> nuevo = new NodoArbol<>(dato);
-        padre.hijoIzquierda = nuevo;
-        return nuevo;
+    public NodoArbol<T> insertarIzquierda(NodoArbol<T> p, T dato) {
+        if (p == null || p.hijoIzquierda != null) return null;
+        NodoArbol<T> referencia = new NodoArbol<>(dato);
+        p.hijoIzquierda = referencia;
+        return referencia;
     }
 
     /**
-     * Inserta el dato respetando la propiedad BST (iterativo).
+     * Inserta {@code dato} respetando el invariante del BST (iterativo).
+     * Si el árbol ya contiene un nodo igual, lo inserta en el subárbol derecho.
      *
-     * <p>Si la raíz es {@code null} el dato se convierte en la nueva raíz.
-     * Si el dato es igual a un nodo existente la inserción no se realiza
-     * (no se permiten duplicados).</p>
-     *
-     * @param dato Dato a insertar en orden.
-     * @return El nuevo nodo creado, o la raíz si el árbol estaba vacío.
+     * @param dato el valor a insertar
+     * @return el nuevo {@link NodoArbol} creado
      */
     public NodoArbol<T> insertarOrdenado(T dato) {
-        if (this.raiz == null) {
-            this.raiz = new NodoArbol<>(dato);
-            return this.raiz;
-        }
-        NodoArbol<T> actual = this.raiz;
-        NodoArbol<T> padre = null;
-        boolean insertarDerecha = false;
+        if (this.raiz != null) {
+            NodoArbol<T> actual = this.raiz;
+            NodoArbol<T> padre = this.raiz;
+            boolean der = false;
 
-        while (actual != null) {
-            int cmp = actual.compararCon(dato);
-            if (cmp == 0) {
-                // Duplicado: no se inserta
-                return actual;
+            while (actual != null) {
+                padre = actual;
+                if (actual.compararCon(dato) > 0) {
+                    actual = actual.hijoIzquierda;
+                    der = false;
+                } else {
+                    actual = actual.hijoDerecha;
+                    der = true;
+                }
             }
-            padre = actual;
-            if (cmp > 0) {
-                actual = actual.hijoIzquierda;
-                insertarDerecha = false;
+            if (der) {
+                padre.hijoDerecha = new NodoArbol<>(dato);
+                return padre.hijoDerecha;
             } else {
-                actual = actual.hijoDerecha;
-                insertarDerecha = true;
+                padre.hijoIzquierda = new NodoArbol<>(dato);
+                return padre.hijoIzquierda;
             }
         }
-
-        NodoArbol<T> nuevo = new NodoArbol<>(dato);
-        if (insertarDerecha) {
-            padre.hijoDerecha = nuevo;
-        } else {
-            padre.hijoIzquierda = nuevo;
-        }
-        return nuevo;
+        this.raiz = new NodoArbol<>(dato);
+        return this.raiz;
     }
 
-    // ── Búsqueda y obtención ─────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Eliminación
+    // -------------------------------------------------------------------------
 
     /**
-     * Indica si existe un nodo cuyo dato sea igual al valor buscado.
+     * Elimina el nodo con valor {@code valor} del BST manteniendo el invariante.
+     * Usa el sucesor in-orden (mínimo del subárbol derecho) cuando el nodo
+     * tiene dos hijos.
      *
-     * @param info Valor a buscar.
-     * @return {@code true} si el árbol contiene el valor.
-     */
-    public boolean buscar(T info) {
-        NodoArbol<T> actual = this.raiz;
-        while (actual != null) {
-            int cmp = actual.compararCon(info);
-            if (cmp == 0) return true;
-            actual = (cmp > 0) ? actual.hijoIzquierda : actual.hijoDerecha;
-        }
-        return false;
-    }
-
-    /**
-     * Retorna el dato almacenado en el nodo que coincide con {@code info}.
-     *
-     * <p>Útil para recuperar la referencia viva al objeto y modificarlo
-     * (por ejemplo, agregar un marcador a una categoría existente).</p>
-     *
-     * @param info Valor de búsqueda.
-     * @return El dato del nodo encontrado, o {@code null} si no existe.
-     */
-    public T obtener(T info) {
-        NodoArbol<T> actual = this.raiz;
-        while (actual != null) {
-            int cmp = actual.compararCon(info);
-            if (cmp == 0) return actual.info;
-            actual = (cmp > 0) ? actual.hijoIzquierda : actual.hijoDerecha;
-        }
-        return null;
-    }
-
-    // ── Eliminación ──────────────────────────────────────────────────────────
-
-    /**
-     * Elimina el nodo que contiene el valor indicado usando el algoritmo
-     * del sucesor inorden para el caso de dos hijos.
-     *
-     * <p>Tres casos manejados:</p>
-     * <ol>
-     *   <li>Nodo hoja: se desvincula directamente.</li>
-     *   <li>Nodo con un solo hijo: el hijo sube a la posición del padre.</li>
-     *   <li>Nodo con dos hijos: el valor del sucesor inorden (mínimo del
-     *       subárbol derecho) reemplaza al dato del nodo, y el sucesor
-     *       es eliminado.</li>
-     * </ol>
-     *
-     * @param valor Valor del nodo a eliminar.
+     * @param valor el valor a eliminar; si no existe, la operación no tiene efecto
      */
     public void eliminarOrdenado(T valor) {
         NodoArbol<T> padre = null;
         NodoArbol<T> actual = this.raiz;
 
-        // Localizar el nodo
+        // Buscar el nodo
         while (actual != null && !actual.info.equals(valor)) {
             padre = actual;
-            actual = (actual.compararCon(valor) > 0)
-                    ? actual.hijoIzquierda
-                    : actual.hijoDerecha;
+            if (actual.compararCon(valor) > 0) {
+                actual = actual.hijoIzquierda;
+            } else {
+                actual = actual.hijoDerecha;
+            }
         }
-
-        if (actual == null) return; // No encontrado
+        if (actual == null) return;
 
         // Caso 1: nodo hoja
         if (actual.hijoIzquierda == null && actual.hijoDerecha == null) {
@@ -268,12 +131,11 @@ public class ArbolBinario<T extends Comparable<T>> {
             } else {
                 padre.hijoDerecha = null;
             }
-
-        // Caso 2: un solo hijo
-        } else if (actual.hijoIzquierda == null || actual.hijoDerecha == null) {
+        }
+        // Caso 2: nodo con un solo hijo
+        else if (actual.hijoIzquierda == null || actual.hijoDerecha == null) {
             NodoArbol<T> hijo = (actual.hijoIzquierda != null)
-                    ? actual.hijoIzquierda
-                    : actual.hijoDerecha;
+                    ? actual.hijoIzquierda : actual.hijoDerecha;
             if (padre == null) {
                 this.raiz = hijo;
             } else if (padre.hijoIzquierda == actual) {
@@ -281,8 +143,66 @@ public class ArbolBinario<T extends Comparable<T>> {
             } else {
                 padre.hijoDerecha = hijo;
             }
+        }
+        // Caso 3: nodo con dos hijos — sucesor in-orden
+        else {
+            NodoArbol<T> sucesorPadre = actual;
+            NodoArbol<T> sucesor = actual.hijoDerecha;
+            while (sucesor.hijoIzquierda != null) {
+                sucesorPadre = sucesor;
+                sucesor = sucesor.hijoIzquierda;
+            }
+            actual.info = sucesor.info;
+            if (sucesorPadre == actual) {
+                sucesorPadre.hijoDerecha = sucesor.hijoDerecha;
+            } else {
+                sucesorPadre.hijoIzquierda = sucesor.hijoDerecha;
+            }
+        }
+    }
 
-        // Caso 3: dos hijos — sucesor inorden
+    /**
+     * Variante de {@link #eliminarOrdenado(Comparable)} que nulifica explícitamente
+     * las referencias del nodo eliminado para facilitar la recolección de basura.
+     *
+     * @param valor el valor a eliminar
+     */
+    public void eliminarOrdenadoA(T valor) {
+        NodoArbol<T> padre = null;
+        NodoArbol<T> actual = this.raiz;
+
+        while (actual != null && !actual.info.equals(valor)) {
+            padre = actual;
+            if (actual.compararCon(valor) > 0) {
+                actual = actual.hijoIzquierda;
+            } else {
+                actual = actual.hijoDerecha;
+            }
+        }
+        if (actual == null) return;
+
+        if (actual.hijoDerecha == null && actual.hijoIzquierda == null) {
+            if (padre == null) {
+                this.raiz = null;
+            } else if (actual.compararCon(padre.info) < 0) {
+                padre.hijoIzquierda = null;
+            } else {
+                padre.hijoDerecha = null;
+            }
+            actual.info = null;
+
+        } else if (actual.hijoDerecha == null || actual.hijoIzquierda == null) {
+            NodoArbol<T> hijo = (actual.hijoIzquierda != null)
+                    ? actual.hijoIzquierda : actual.hijoDerecha;
+            if (padre == null) {
+                this.raiz = hijo;
+            } else if (padre.hijoIzquierda == actual) {
+                padre.hijoIzquierda = hijo;
+            } else {
+                padre.hijoDerecha = hijo;
+            }
+            actual.info = null;
+
         } else {
             NodoArbol<T> sucesorPadre = actual;
             NodoArbol<T> sucesor = actual.hijoDerecha;
@@ -300,56 +220,96 @@ public class ArbolBinario<T extends Comparable<T>> {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Búsqueda
+    // -------------------------------------------------------------------------
+
     /**
-     * Alias de {@link #eliminarOrdenado(Object)} mantenido por compatibilidad
-     * con el código original que usaba {@code eliminarOrdenadoA}.
+     * Indica si el árbol contiene un nodo cuyo valor es igual a {@code info}.
      *
-     * @param valor Valor del nodo a eliminar.
+     * @param info el valor a buscar
+     * @return {@code true} si existe, {@code false} en caso contrario
      */
-    public void eliminarOrdenadoA(T valor) {
-        eliminarOrdenado(valor);
+    public boolean buscar(T info) {
+        NodoArbol<T> actual = this.raiz;
+        while (actual != null) {
+            if (actual.compararCon(info) == 0) return true;
+            actual = actual.compararCon(info) > 0
+                    ? actual.hijoIzquierda : actual.hijoDerecha;
+        }
+        return false;
     }
 
-    // ── Recorridos ───────────────────────────────────────────────────────────
+    /**
+     * Retorna el dato almacenado en el nodo cuyo valor es igual a {@code info}.
+     *
+     * @param info el valor a buscar
+     * @return el dato del nodo encontrado, o {@code null} si no existe
+     */
+    public T obtener(T info) {
+        NodoArbol<T> actual = this.raiz;
+        while (actual != null) {
+            if (actual.compararCon(info) == 0) return actual.info;
+            actual = actual.compararCon(info) > 0
+                    ? actual.hijoIzquierda : actual.hijoDerecha;
+        }
+        return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Recorridos
+    // -------------------------------------------------------------------------
 
     /**
-     * Recorrido por anchura (BFS) usando una {@link ListaDoble} como cola.
-     * Imprime cada elemento en el orden nivel por nivel.
+     * Recorre el árbol en anchura (BFS), imprimiendo cada valor.
+     * Usa una {@link ListaDoble} como cola auxiliar.
      */
     public void recorrer() {
-        if (this.raiz == null) return;
-        ListaDoble<NodoArbol<T>> cola = new ListaDoble<>();
-        cola.insertar(this.raiz);
-        while (cola.size() != 0) {
-            NodoArbol<T> actual = cola.remover();
+        ListaDoble<NodoArbol<T>> q = new ListaDoble<>();
+        q.insertar(this.raiz);
+        while (q.size() != 0) {
+            NodoArbol<T> actual = q.remover();
             System.out.println(actual.info);
-            if (actual.hijoIzquierda != null) cola.insertar(actual.hijoIzquierda);
-            if (actual.hijoDerecha != null) cola.insertar(actual.hijoDerecha);
+            @SuppressWarnings("unchecked")
+            NodoArbol<T>[] hijos = new NodoArbol[2];
+            hijos[0] = actual.hijoIzquierda;
+            hijos[1] = actual.hijoDerecha;
+            for (NodoArbol<T> hijo : hijos) {
+                if (!q.contiene(hijo) && hijo != null) {
+                    q.insertar(hijo);
+                }
+            }
         }
     }
 
     /**
-     * Recorrido por profundidad (DFS) iterativo usando una {@link Pila}.
+     * Recorre el árbol en profundidad (DFS) a partir de {@code nodo},
+     * usando una {@link Pila} auxiliar.
      *
-     * @param nodo Nodo desde el que inicia el recorrido (normalmente {@code raiz}).
+     * @param nodo el nodo desde el cual iniciar el recorrido
      */
     public void recorrerProfundidad(NodoArbol<T> nodo) {
-        if (nodo == null) return;
-        Pila<NodoArbol<T>> pila = new Pila<>();
-        pila.push(nodo);
-        while (!pila.empty()) {
-            NodoArbol<T> actual = pila.pop();
+        Pila<NodoArbol<T>> q = new Pila<>();
+        q.push(nodo);
+        while (q.size() != 0) {
+            NodoArbol<T> actual = q.pop();
             System.out.println(actual.info);
-            // Se empuja derecho primero para que izquierdo salga primero (DFS-preorden)
-            if (actual.hijoDerecha != null) pila.push(actual.hijoDerecha);
-            if (actual.hijoIzquierda != null) pila.push(actual.hijoIzquierda);
+            @SuppressWarnings("unchecked")
+            NodoArbol<T>[] hijos = new NodoArbol[2];
+            hijos[0] = actual.hijoDerecha;
+            hijos[1] = actual.hijoIzquierda;
+            for (NodoArbol<T> hijo : hijos) {
+                if (!q.contiene(hijo) && hijo != null) {
+                    q.push(hijo);
+                }
+            }
         }
     }
 
     /**
-     * Recorrido pre-orden recursivo: raíz → izquierdo → derecho.
+     * Recorre el árbol en pre-orden (raíz → izquierda → derecha) de forma recursiva.
      *
-     * @param raiz Nodo desde el que inicia el recorrido.
+     * @param raiz nodo desde el cual iniciar; si es {@code null}, el método retorna
      */
     public void recorrerPreOrden(NodoArbol<T> raiz) {
         if (raiz == null) return;
@@ -359,10 +319,10 @@ public class ArbolBinario<T extends Comparable<T>> {
     }
 
     /**
-     * Recorrido in-orden recursivo: izquierdo → raíz → derecho.
-     * Produce la salida en orden ascendente para un ABB.
+     * Recorre el árbol en in-orden (izquierda → raíz → derecha) de forma recursiva.
+     * En un BST produce los elementos en orden ascendente.
      *
-     * @param raiz Nodo desde el que inicia el recorrido.
+     * @param raiz nodo desde el cual iniciar; si es {@code null}, el método retorna
      */
     public void recorrerInOrden(NodoArbol<T> raiz) {
         if (raiz == null) return;
@@ -372,14 +332,33 @@ public class ArbolBinario<T extends Comparable<T>> {
     }
 
     /**
-     * Recorrido pos-orden recursivo: izquierdo → derecho → raíz.
+     * Recorre el árbol en pos-orden (izquierda → derecha → raíz) de forma recursiva.
      *
-     * @param raiz Nodo desde el que inicia el recorrido.
+     * @param raiz nodo desde el cual iniciar; si es {@code null}, el método retorna
      */
     public void recorrerPosOrden(NodoArbol<T> raiz) {
         if (raiz == null) return;
-        recorrerPosOrden(raiz.hijoIzquierda);
-        recorrerPosOrden(raiz.hijoDerecha);
+        recorrerInOrden(raiz.hijoIzquierda);
+        recorrerInOrden(raiz.hijoDerecha);
         System.out.println(raiz.info);
+    }
+
+    /**
+     * Inserta {@code dato} de forma ordenada recursivamente.
+     * <em>Nota:</em> implementación incompleta en el código original; conservada
+     * para compatibilidad futura.
+     *
+     * @param dato  el valor a insertar
+     * @param raiz  el nodo raíz del subárbol actual
+     * @return siempre {@code null} en la implementación actual
+     */
+    public NodoArbol<T> insertarOrdenadoRecursivo(T dato, NodoArbol<T> raiz) {
+        if (raiz == null) return null;
+        if (raiz.compararCon(dato) < 0) {
+            insertarOrdenadoRecursivo(dato, raiz.hijoDerecha);
+        } else {
+            insertarOrdenadoRecursivo(dato, raiz.hijoIzquierda);
+        }
+        return null;
     }
 }

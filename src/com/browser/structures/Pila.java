@@ -4,21 +4,17 @@ import java.util.EmptyStackException;
 import java.util.Objects;
 
 /**
- * Estructura de datos LIFO (Last In, First Out) implementada sobre
- * {@link ListaDoble}.
+ * Pila (stack) genérica con semántica LIFO (<em>Last In, First Out</em>).
  *
- * <p>Reutiliza la infraestructura de nodos de la lista doble, restringiendo
- * el acceso al extremo frontal para comportamiento de pila. Extiende
- * {@code ListaDoble} para compartir los campos protegidos {@code cabeza},
- * {@code cola} y {@code cantidadNodos}, evitando duplicar la lógica de
- * enlazado de nodos.</p>
+ * <p>Extiende {@link ListaDoble} reutilizando su infraestructura de nodos
+ * doblemente enlazados. El tope de la pila corresponde siempre al primer
+ * nodo de la lista (posición 0), por lo que {@code push} y {@code pop}
+ * operan en O(1).</p>
  *
- * <p>Uso principal en el proyecto: historial de navegación
- * hacia adelante y hacia atrás dentro de {@link dominio.entidades.Tab}.</p>
+ * <p>Se usa principalmente en {@code Tab} para gestionar el historial
+ * de navegación hacia atrás y hacia adelante.</p>
  *
- * @param <T> Tipo de dato almacenado en la pila.
- * @author Refactorización Fase 1
- * @version 1.0
+ * @param <T> el tipo de dato almacenado en la pila
  */
 public class Pila<T> extends ListaDoble<T> {
 
@@ -30,77 +26,77 @@ public class Pila<T> extends ListaDoble<T> {
     }
 
     /**
-     * Empuja el dato en la cima de la pila (equivale a push en java.util.Stack).
+     * Empuja un dato al tope de la pila.
      *
-     * @param dato Dato a insertar en la cima.
-     * @return El mismo dato insertado.
+     * @param dato el elemento a apilar
+     * @return el mismo {@code dato} que fue apilado
      */
+    @Override
     public T push(T dato) {
         super.insertarAlPrincipio(dato);
         return dato;
     }
 
     /**
-     * Extrae y retorna el elemento en la cima de la pila.
+     * Extrae y retorna el elemento en el tope de la pila.
      *
-     * @return El elemento en la cima.
-     * @throws EmptyStackException si la pila está vacía.
+     * @return el dato del tope
+     * @throws EmptyStackException si la pila está vacía
      */
-    public T pop() {
-        if (cantidadNodos == 0) {
-            throw new EmptyStackException();
-        }
-        return super.remover();
+    @Override
+    public T pop() throws EmptyStackException {
+        if (cantidadNodos != 0) return super.remover();
+        throw new EmptyStackException();
     }
 
     /**
-     * Retorna (sin extraer) el elemento en la cima de la pila.
+     * Retorna el elemento en el tope sin extraerlo.
      *
-     * @return El elemento en la cima.
-     * @throws EmptyStackException si la pila está vacía.
+     * @return el dato del tope
+     * @throws EmptyStackException si la pila está vacía
      */
     @Override
-    public T peek() {
-        if (cantidadNodos == 0) {
-            throw new EmptyStackException();
-        }
-        return cabeza.getSiguiente().getDato();
+    public T peek() throws EmptyStackException {
+        if (cantidadNodos != 0) return cabeza.getSiguiente().getDato();
+        throw new EmptyStackException();
+    }
+
+    @Override
+    public T obtener() {
+        return this.peek();
     }
 
     /**
      * Indica si la pila no contiene elementos.
      *
-     * @return {@code true} si la pila está vacía.
+     * @return {@code true} si la pila está vacía
      */
+    @Override
     public boolean empty() {
         return cantidadNodos == 0;
     }
 
     /**
-     * Busca el dato en la pila y retorna su posición basada en 1 desde la cima.
+     * Busca el dato en la pila y retorna su posición 1-based desde el tope.
+     * La posición {@code 1} corresponde al tope.
      *
-     * <p>La cima tiene posición 1. Si el elemento no se encuentra, retorna -1.
-     * Usa {@link Objects#equals} para la comparación.</p>
-     *
-     * @param dato Dato a buscar.
-     * @return Posición 1-based desde la cima, o -1 si no se encuentra.
+     * @param dato el elemento a buscar
+     * @return posición 1-based desde el tope, o {@code -1} si no se encuentra
      */
     public int search(T dato) {
-        Nodo<T> actual = cabeza.getSiguiente();
-        int posicion = 1;
-        while (actual != cola) {
-            if (Objects.equals(actual.getDato(), dato)) {
-                return posicion;
-            }
+        Nodo<T> actual = cabeza;
+        for (int j = 0; j < cantidadNodos; j++) {
             actual = actual.getSiguiente();
-            posicion++;
+            if (Objects.equals(actual.getDato(), dato)) {
+                return j + 1;
+            }
         }
         return -1;
     }
 
     /**
-     * Imprime todos los elementos de la pila usando el formato horizontal
-     * de {@link ListaDoble#mostrarLista()}.
+     * Imprime el contenido de la pila en formato horizontal desde el tope.
+     * Delegado a {@link ListaDoble#mostrarLista()}.
      */
     public void mostrarPila() {
         super.mostrarLista();

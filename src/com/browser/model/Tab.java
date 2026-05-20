@@ -1,26 +1,33 @@
 package com.browser.model;
 
 import com.browser.structures.Pila;
-package dominio.entidades;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
+import com.browser.model.tabs.ITabHistory;
 
 /**
  * Entidad que representa una pestaña del navegador simulado.
  *
- * <p>Cada pestaña mantiene su estado actual (título y URL) y dos
- * historiales de navegación implementados con {@link Pila}:
+ * <p>Cada pestaña mantiene su estado actual (título y URL) y dos historiales
+ * de navegación implementados con {@link Pila}:
  * uno para retroceder ({@code historialAtras}) y otro para avanzar
  * ({@code historialAdelante}).</p>
  *
- * <p>Cada entrada del historial es un arreglo {@code String[2]} donde
- * la posición 0 guarda el título y la posición 1 guarda la URL,
- * preservando exactamente el comportamiento del código original.</p>
+ * <p>Cada entrada del historial es un arreglo {@code String[2]} donde la
+ * posición 0 guarda el título y la posición 1 guarda la URL, preservando el
+ * comportamiento del código original.</p>
  *
- * <p>No depende de ninguna colección nativa Java.</p>
+ * <p>Implementa {@link ITabHistory} para que el controlador interactúe con
+ * la pestaña a través del contrato en lugar de la implementación concreta,
+ * conforme al principio de Inversión de Dependencias (DIP).</p>
  *
- * @author Refactorización Fase 1
- * @version 1.0
+ * <p>No depende de ninguna colección nativa de Java.</p>
+ *
+ * @author Refactorización Fase 4
+ * @version 2.0
+ * @see ITabHistory
+ * @see Pila
  */
-public class Tab {
+public class Tab implements ITabHistory {
 
     /**
      * Estado actual de la pestaña: {@code info[0]} = título,
@@ -29,10 +36,10 @@ public class Tab {
     private String[] info;
 
     /** Pila de estados anteriores para la función "atrás". */
-    private Pila<String[]> historialAtras;
+    private IEstructuraDeDatos<String[]> historialAtras;
 
     /** Pila de estados siguientes para la función "adelante". */
-    private Pila<String[]> historialAdelante;
+    private IEstructuraDeDatos<String[]> historialAdelante;
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
@@ -46,29 +53,43 @@ public class Tab {
         this.historialAdelante = new Pila<>();
     }
 
-    // ── Navegación ───────────────────────────────────────────────────────────
+    // ── ITabHistory ──────────────────────────────────────────────────────────
 
     /**
-     * Navega a la URL indicada, guardando el estado actual en el historial
-     * de retroceso y limpiando el historial de avance.
+     * {@inheritDoc}
      *
      * <p>El título se genera automáticamente como la URL en mayúsculas,
      * replicando el comportamiento original.</p>
-     *
-     * @param url Nueva URL a visitar.
      */
+    @Override
     public void setUrl(String url) {
         String[] estadoActual = this.info.clone();
         this.historialAtras.push(estadoActual);
-        this.historialAdelante.limpiar();
+        this.historialAdelante.pop();
         this.info[1] = url;
         this.info[0] = url.toUpperCase();
     }
 
     /**
-     * Retrocede al estado anterior si existe historial de retroceso.
-     * El estado actual se guarda en el historial de avance.
+     * {@inheritDoc}
      */
+    @Override
+    public String getUrl() {
+        return this.info[1];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getTitulo() {
+        return this.info[0];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void atras() {
         if (this.historialAtras.empty()) return;
         String[] estadoPrevio = this.historialAtras.pop();
@@ -79,9 +100,9 @@ public class Tab {
     }
 
     /**
-     * Avanza al estado siguiente si existe historial de avance.
-     * El estado actual se guarda en el historial de retroceso.
+     * {@inheritDoc}
      */
+    @Override
     public void adelante() {
         if (this.historialAdelante.empty()) return;
         String[] estadoSiguiente = this.historialAdelante.pop();
@@ -91,31 +112,11 @@ public class Tab {
         this.info[1] = estadoSiguiente[1];
     }
 
-    // ── Getters ──────────────────────────────────────────────────────────────
-
-    /**
-     * Retorna el título actual de la pestaña.
-     *
-     * @return El título almacenado en {@code info[0]}.
-     */
-    public String getTitulo() {
-        return this.info[0];
-    }
-
-    /**
-     * Retorna la URL actual de la pestaña.
-     *
-     * @return La URL almacenada en {@code info[1]}.
-     */
-    public String getUrl() {
-        return this.info[1];
-    }
-
     // ── Utilidades ───────────────────────────────────────────────────────────
 
     /**
      * Retorna el título de la pestaña como representación textual.
-     * Usado por {@link infraestructura.estructuras.ListaDoble#mostrarLista()}.
+     * Utilizado por {@link com.browser.structures.ListaDoble#mostrarLista()}.
      *
      * @return El título de la pestaña.
      */

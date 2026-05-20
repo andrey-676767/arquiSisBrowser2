@@ -1,39 +1,26 @@
 package com.browser.model;
 
 /**
- * Entidad que representa a un usuario registrado en el simulador de navegador.
+ * Entidad que representa a un usuario registrado en el simulador de navegación.
  *
- * <p>Aunque el código fuente original no incluía la clase {@code Usuario},
- * el diagrama de arquitectura objetivo ({@code BrowserController},
- * {@code UsuarioService}, {@code SQLiteRepository}) la requiere como entidad
- * de dominio para la Fase 2 (autenticación y persistencia de marcadores
- * por usuario). Se introduce aquí para completar la capa de dominio y
- * permitir que {@code ListaDoble<Usuario>} sea tipada correctamente.</p>
+ * <p>Almacena las credenciales mínimas necesarias para autenticación
+ * (nombre de usuario y contraseña). La contraseña debe manejarse hasheada
+ * en capas superiores; esta clase no impone restricciones sobre el formato.</p>
  *
- * <p>Encapsula nombre de usuario y contraseña. La contraseña debe ser
- * tratada como un hash en capas superiores — esta clase solo la almacena
- * como cadena.</p>
- *
- * @author Refactorización Fase 1
- * @version 1.0
+ * <p>Implementa {@link Comparable} sobre el nombre para permitir su uso
+ * en estructuras ordenadas como {@code ArbolBinario}.</p>
  */
-public class Usuario {
+public class Usuario implements Comparable<Usuario> {
 
-    /** Nombre único que identifica al usuario. */
+    /** Nombre de usuario; actúa como identificador único. */
     private String nombre;
 
-    /**
-     * Contraseña del usuario.
-     * <strong>Nota:</strong> en la Fase 2 este campo deberá almacenar
-     * un hash (BCrypt, SHA-256, etc.), nunca la contraseña en texto plano.
-     */
+    /** Contraseña del usuario (debe almacenarse hasheada). */
     private String contrasena;
 
-    // ── Constructores ────────────────────────────────────────────────────────
-
     /**
-     * Construye un usuario con credenciales vacías.
-     * Útil como placeholder en colecciones o para pruebas.
+     * Construye un {@code Usuario} vacío.
+     * Los campos quedan como cadenas vacías para evitar {@code null}.
      */
     public Usuario() {
         this.nombre = "";
@@ -41,65 +28,78 @@ public class Usuario {
     }
 
     /**
-     * Construye un usuario con nombre y contraseña definidos.
+     * Construye un {@code Usuario} con nombre y contraseña especificados.
      *
-     * @param nombre    Nombre único del usuario.
-     * @param contrasena Contraseña (idealmente hasheada antes de pasar aquí).
+     * @param nombre    nombre de usuario; no debe ser {@code null}
+     * @param contrasena contraseña del usuario; no debe ser {@code null}
      */
     public Usuario(String nombre, String contrasena) {
         this.nombre = nombre;
         this.contrasena = contrasena;
     }
 
-    // ── Getters ──────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Getters y setters
+    // -------------------------------------------------------------------------
 
     /**
-     * Retorna el nombre del usuario.
+     * Retorna el nombre de usuario.
      *
-     * @return El nombre almacenado.
+     * @return nombre del usuario
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Retorna la contraseña del usuario.
+     * Establece el nombre de usuario.
      *
-     * @return La contraseña almacenada.
-     */
-    public String getContrasena() {
-        return contrasena;
-    }
-
-    // ── Setters ──────────────────────────────────────────────────────────────
-
-    /**
-     * Establece el nombre del usuario.
-     *
-     * @param nombre Nuevo nombre.
+     * @param nombre el nuevo nombre; no debe ser {@code null}
      */
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
     /**
+     * Retorna la contraseña del usuario.
+     *
+     * @return contraseña (idealmente hasheada)
+     */
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    /**
      * Establece la contraseña del usuario.
      *
-     * @param contrasena Nueva contraseña (debe ser hasheada antes de invocar).
+     * @param contrasena la nueva contraseña; no debe ser {@code null}
      */
     public void setContrasena(String contrasena) {
         this.contrasena = contrasena;
     }
 
-    // ── Utilidades ───────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Comparable / Object
+    // -------------------------------------------------------------------------
 
     /**
-     * Retorna el nombre del usuario como representación textual.
+     * Compara este usuario con otro por nombre en orden lexicográfico.
      *
-     * @return El nombre del usuario.
+     * @param otro el usuario con el que comparar
+     * @return valor negativo, cero o positivo según el orden de los nombres
+     */
+    @Override
+    public int compareTo(Usuario otro) {
+        return this.nombre.compareTo(otro.nombre);
+    }
+
+    /**
+     * Retorna una representación legible del usuario (sin exponer la contraseña).
+     *
+     * @return cadena con el formato {@code Usuario{nombre='...'}}
      */
     @Override
     public String toString() {
-        return this.nombre;
+        return "Usuario{nombre='" + nombre + "'}";
     }
 }

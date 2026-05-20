@@ -3,119 +3,140 @@ package com.browser.structures;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/**
- * Implementación concreta de una lista doblemente enlazada genérica.
- *
- * <p>Utiliza dos nodos centinela (cabeza y cola) para simplificar las
- * operaciones de inserción y eliminación en los extremos, evitando
- * comprobaciones especiales de bordes. Todos los nodos de datos se
- * ubican entre ambos centinelas.</p>
- *
- * <p>Esta clase reemplaza en su totalidad el uso de {@code java.util.List},
- * {@code ArrayList} y {@code LinkedList} dentro del proyecto. Ninguna
- * capa del sistema debe importar esas clases.</p>
- *
- * <p>Es la única colección base autorizada. {@link Pila} extiende esta
- * clase para reutilizar su infraestructura de nodos.</p>
- *
- * @param <T> Tipo de dato que almacena la lista.
- * @author Refactorización Fase 1
- * @version 1.0
- */
-public class ListaDoble<T> implements IListaDoble<T> {
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
-    /** Centinela de cabeza — nunca contiene dato real. */
+/**
+ * Lista doblemente enlazada genérica que implementa {@link IEstructuraDeDatos}.
+ *
+ * <p>Utiliza nodos centinela de cabeza y cola para simplificar las operaciones
+ * en los extremos y evitar comprobaciones especiales de bordes. Ofrece una API
+ * completa de inserción, eliminación, búsqueda y recorrido, análoga a
+ * {@code java.util.LinkedList}.</p>
+ *
+ * <p>Esta clase está diseñada para ser extendida por {@link Pila}, que reusa
+ * su infraestructura de nodos añadiendo semántica LIFO.</p>
+ *
+ * @param <T> el tipo de dato almacenado en la lista
+ */
+public class ListaDoble<T> implements IEstructuraDeDatos<T> {
+
+    /*Push */
+
+    /** Nodo centinela de cabeza (no almacena dato real). */
     protected Nodo<T> cabeza;
 
-    /** Centinela de cola — nunca contiene dato real. */
+    /** Nodo centinela de cola (no almacena dato real). */
     protected Nodo<T> cola;
 
-    /** Cantidad de nodos con datos reales actualmente en la lista. */
+    /** Número de nodos con dato real actualmente en la lista. */
     protected int cantidadNodos;
 
-    // ── Constructor ──────────────────────────────────────────────────────────
-
     /**
-     * Construye una lista vacía, inicializando los centinelas vinculados
-     * entre sí: cabeza.siguiente → cola y cola.anterior → cabeza.
+     * Construye una lista vacía con los nodos centinela ya enlazados.
      */
     public ListaDoble() {
         cabeza = new Nodo<>(null);
         cola = new Nodo<>(null);
         cabeza.setSiguiente(cola);
         cola.setAnterior(cabeza);
-        cantidadNodos = 0;
     }
 
-    // ── Inserción ────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Inserción
+    // -------------------------------------------------------------------------
 
     /**
-     * {@inheritDoc}
+     * Inserta un dato como primer elemento de la lista.
+     * Equivalente a {@code addFirst(E)} de {@code LinkedList}.
      *
-     * <p>Inserta el nuevo nodo inmediatamente después del centinela de cabeza,
-     * convirtiéndolo en el primer elemento visible de la lista.</p>
+     * @param dato el elemento a insertar al inicio
      */
-    @Override
     public void insertarAlPrincipio(T dato) {
-        Nodo<T> nuevo = new Nodo<>(dato);
-        Nodo<T> primerReal = cabeza.getSiguiente();
-        nuevo.setSiguiente(primerReal);
-        nuevo.setAnterior(cabeza);
-        cabeza.setSiguiente(nuevo);
-        primerReal.setAnterior(nuevo);
+        Nodo<T> nodo = new Nodo<>(dato);
+        Nodo<T> siguiente = cabeza.getSiguiente();
+        nodo.setSiguiente(siguiente);
+        nodo.setAnterior(cabeza);
+        cabeza.setSiguiente(nodo);
+        siguiente.setAnterior(nodo);
         cantidadNodos++;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Inserta el nuevo nodo inmediatamente antes del centinela de cola,
-     * convirtiéndolo en el último elemento visible de la lista.</p>
-     */
+    /*Pequeña sección mia */
+
     @Override
-    public void insertarAlFinal(T dato) {
-        Nodo<T> nuevo = new Nodo<>(dato);
-        Nodo<T> penultimo = cola.getAnterior();
-        nuevo.setAnterior(penultimo);
-        nuevo.setSiguiente(cola);
-        penultimo.setSiguiente(nuevo);
-        cola.setAnterior(nuevo);
-        cantidadNodos++;
+    public T push(T dato) {
+        this.insertarAlPrincipio(dato);
+        return dato;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Navega hasta la posición indicada contando desde el centinela de
-     * cabeza e inserta el nuevo nodo antes del nodo que estaba en esa
-     * posición. El nodo desplazado pasa al índice {@code indice + 1}.</p>
-     *
-     * @throws IndexOutOfBoundsException si {@code indice < 0} o
-     *                                   {@code indice >= size()}.
-     */
     @Override
-    public void insertarEn(int indice, T dato) {
-        if (indice < 0 || indice >= cantidadNodos) {
-            throw new IndexOutOfBoundsException(
-                    "Índice " + indice + " inválido para lista de tamaño " + cantidadNodos);
+    public T pop() {
+        return this.remover();
+    }
+
+    @Override
+    public boolean empty() {
+        return this.cantidadNodos == 0;
+    }
+
+    @Override
+    public int cantidad() {
+        return this.cantidadNodos;
+    }
+
+    @Override
+    public T obtener() {
+        return this.obtenerPrimero();
+    }
+    /**
+     * Inserta un dato en la posición {@code index} desplazando hacia adelante
+     * al elemento actualmente en esa posición.
+     * Equivalente a {@code add(int, E)} de {@code LinkedList}.
+     *
+     * @param index posición (basada en 0) donde se insertará el dato
+     * @param dato  el elemento a insertar
+     * @throws IndexOutOfBoundsException si {@code index} está fuera del rango {@code [0, size)}
+     */
+    public void insertarEn(int index, T dato) throws IndexOutOfBoundsException {
+        if (index >= cantidadNodos || index < 0) {
+            throw new IndexOutOfBoundsException("Indice " + index + " invalido");
         }
-        Nodo<T> nuevo = new Nodo<>(dato);
+        Nodo<T> nodo = new Nodo<>(dato);
         Nodo<T> actual = cabeza;
-        for (int i = 0; i < indice; i++) {
+        for (int i = 0; i < index; i++) {
             actual = actual.getSiguiente();
         }
         Nodo<T> siguiente = actual.getSiguiente();
-        nuevo.setAnterior(actual);
-        nuevo.setSiguiente(siguiente);
-        siguiente.setAnterior(nuevo);
-        actual.setSiguiente(nuevo);
+        nodo.setAnterior(actual);
+        nodo.setSiguiente(siguiente);
+        siguiente.setAnterior(nodo);
+        actual.setSiguiente(nodo);
         cantidadNodos++;
     }
 
     /**
-     * {@inheritDoc}
+     * Inserta un dato como último elemento de la lista.
+     * Equivalente a {@code addLast(E)} de {@code LinkedList}.
      *
-     * <p>Equivale a {@code addLast} → delega en {@link #insertarAlFinal}.</p>
+     * @param dato el elemento a insertar al final
+     */
+    public void insertarAlFinal(T dato) {
+        Nodo<T> nodo = new Nodo<>(dato);
+        Nodo<T> actual = cola.getAnterior();
+        nodo.setAnterior(actual);
+        nodo.setSiguiente(cola);
+        actual.setSiguiente(nodo);
+        cola.setAnterior(nodo);
+        cantidadNodos++;
+    }
+
+    /**
+     * Inserta un dato al final de la lista.
+     * Implementa {@link IEstructuraDeDatos#insertar(Object)}.
+     * Equivalente a {@code add(E)} de {@code LinkedList}.
+     *
+     * @param dato el elemento a insertar
+     * @return {@code true} si la lista creció en exactamente un elemento
      */
     @Override
     public boolean insertar(T dato) {
@@ -124,435 +145,317 @@ public class ListaDoble<T> implements IListaDoble<T> {
         return cantidadNodos == antes + 1;
     }
 
-    // ── Eliminación ──────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Eliminación
+    // -------------------------------------------------------------------------
 
     /**
-     * {@inheritDoc}
-     *
-     * <p>Elimina el nodo inmediatamente siguiente al centinela de cabeza
-     * (primer elemento real). Libera todas las referencias del nodo para
-     * ayudar al GC.</p>
-     *
-     * @throws NoSuchElementException si la lista está vacía.
+     * Elimina todos los elementos de la lista, liberando las referencias
+     * de cada nodo para facilitar la recolección de basura.
+     * Equivalente a {@code clear()} de {@code LinkedList}.
      */
-    @Override
-    public T remover() {
-        if (cantidadNodos == 0) {
-            throw new NoSuchElementException("No se puede remover de una lista vacía.");
+    public void limpiar() {
+        Nodo<T> actual = cola;
+        Nodo<T> anterior = actual.getAnterior();
+        for (int i = 0; i < cantidadNodos; i++) {
+            actual.setDato(null);
+            actual.setSiguiente(null);
+            actual.setAnterior(null);
+            actual = anterior;
+            anterior = actual.getAnterior();
         }
-        Nodo<T> objetivo = cabeza.getSiguiente();
-        T dato = objetivo.getDato();
-        Nodo<T> siguiente = objetivo.getSiguiente();
-        cabeza.setSiguiente(siguiente);
-        siguiente.setAnterior(cabeza);
-        objetivo.setSiguiente(null);
-        objetivo.setAnterior(null);
-        objetivo.setDato(null);
-        cantidadNodos--;
-        return dato;
+        cola.setAnterior(cabeza);
+        cabeza.setSiguiente(cola);
+        cantidadNodos = 0;
     }
 
     /**
-     * {@inheritDoc}
+     * Elimina y retorna el primer elemento de la lista.
+     * Equivalente a {@code remove()} de {@code LinkedList}.
      *
-     * <p>Navega hasta la posición indicada y desvincula el nodo encontrado,
-     * reconectando sus vecinos entre sí.</p>
+     * @return el dato del primer nodo
+     * @throws NoSuchElementException si la lista está vacía
+     */
+    public T remover() throws NoSuchElementException {
+        if (cantidadNodos != 0) {
+            T info = cabeza.getSiguiente().getDato();
+            Nodo<T> nodo = cabeza.getSiguiente();
+            Nodo<T> actual = nodo.getSiguiente();
+            actual.setAnterior(cabeza);
+            cabeza.setSiguiente(actual);
+            nodo.setSiguiente(null);
+            nodo.setDato(null);
+            nodo.setAnterior(null);
+            cantidadNodos--;
+            return info;
+        }
+        throw new NoSuchElementException("Lista vacia");
+    }
+
+    /**
+     * Elimina y retorna el elemento en la posición {@code index}.
+     * Implementa {@link IEstructuraDeDatos#remover(int)}.
+     * Equivalente a {@code remove(int)} de {@code LinkedList}.
      *
-     * @throws IndexOutOfBoundsException si el índice es negativo o mayor o
-     *                                   igual al tamaño actual.
+     * @param index índice (basado en 0) del elemento a eliminar
+     * @return el dato del nodo eliminado
+     * @throws IndexOutOfBoundsException si {@code index} está fuera del rango {@code [0, size)}
      */
     @Override
-    public T remover(int indice) {
-        if (indice < 0 || indice >= cantidadNodos) {
-            throw new IndexOutOfBoundsException(
-                    "Índice " + indice + " inválido para lista de tamaño " + cantidadNodos);
+    public T remover(int index) throws IndexOutOfBoundsException {
+        if (index >= cantidadNodos || index < 0) {
+            throw new IndexOutOfBoundsException("Indice " + index + " invalido");
         }
         Nodo<T> anterior = cabeza;
-        for (int i = 0; i < indice; i++) {
+        for (int i = 0; i < index; i++) {
             anterior = anterior.getSiguiente();
         }
-        Nodo<T> objetivo = anterior.getSiguiente();
-        T dato = objetivo.getDato();
-        Nodo<T> siguiente = objetivo.getSiguiente();
+        Nodo<T> actual = anterior.getSiguiente();
+        T info = actual.getDato();
+        Nodo<T> siguiente = actual.getSiguiente();
         anterior.setSiguiente(siguiente);
         siguiente.setAnterior(anterior);
-        objetivo.setSiguiente(null);
-        objetivo.setAnterior(null);
+        actual.setSiguiente(null);
+        actual.setAnterior(null);
         cantidadNodos--;
-        return dato;
+        return info;
     }
 
     /**
-     * {@inheritDoc}
+     * Elimina la primera ocurrencia del objeto {@code o} en la lista.
+     * Equivalente a {@code remove(Object)} de {@code LinkedList}.
      *
-     * <p>Elimina el nodo inmediatamente anterior al centinela de cola
-     * (último elemento real). Si la lista está vacía retorna {@code null}
-     * sin lanzar excepción, para compatibilidad con el uso en el
-     * administrador de descargas.</p>
+     * @param o el objeto a eliminar (comparación por referencia)
+     * @return {@code true} si se encontró y eliminó, {@code false} si no estaba
      */
-    @Override
-    public T removerUltimo() {
-        if (cantidadNodos == 0) {
-            return null;
-        }
-        Nodo<T> objetivo = cola.getAnterior();
-        T dato = objetivo.getDato();
-        Nodo<T> penultimo = objetivo.getAnterior();
-        penultimo.setSiguiente(cola);
-        cola.setAnterior(penultimo);
-        objetivo.setSiguiente(null);
-        objetivo.setAnterior(null);
-        objetivo.setDato(null);
-        cantidadNodos--;
-        return dato;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Busca por igualdad de referencia ({@code ==}) la primera coincidencia
-     * del objeto y la desvincula. Compatibilidad con el código original que
-     * usaba comparación de referencia en {@code removerObjeto}.</p>
-     */
-    @Override
     public boolean removerObjeto(Object o) {
-        Nodo<T> actual = cabeza.getSiguiente();
-        while (actual != cola) {
+        Nodo<T> actual = cabeza;
+        boolean encontrado = false;
+        for (int j = 0; j < cantidadNodos; j++) {
+            actual = actual.getSiguiente();
             if (actual.getDato() == o) {
-                Nodo<T> ant = actual.getAnterior();
-                Nodo<T> sig = actual.getSiguiente();
-                ant.setSiguiente(sig);
-                sig.setAnterior(ant);
-                actual.setSiguiente(null);
-                actual.setAnterior(null);
-                actual.setDato(null);
-                cantidadNodos--;
-                return true;
+                encontrado = true;
+                break;
             }
-            actual = actual.getSiguiente();
         }
-        return false;
+        if (!encontrado) return false;
+        Nodo<T> anterior = actual.getAnterior();
+        Nodo<T> siguiente = actual.getSiguiente();
+        anterior.setSiguiente(siguiente);
+        siguiente.setAnterior(anterior);
+        actual.setAnterior(null);
+        actual.setSiguiente(null);
+        cantidadNodos--;
+        return true;
     }
 
     /**
-     * {@inheritDoc}
+     * Elimina la primera ocurrencia de {@code dato}.
+     * Equivalente a {@code removeFirstOccurrence(E)} de {@code LinkedList}.
      *
-     * <p>Busca la primera ocurrencia usando {@link Objects#equals} y la elimina.</p>
+     * @param dato el elemento a eliminar
+     * @return {@code true} si se eliminó, {@code false} en caso contrario
      */
-    @Override
     public boolean removerPrimeraOcurrencia(T dato) {
-        Nodo<T> actual = cabeza.getSiguiente();
-        while (actual != cola) {
-            if (Objects.equals(actual.getDato(), dato)) {
-                Nodo<T> ant = actual.getAnterior();
-                Nodo<T> sig = actual.getSiguiente();
-                ant.setSiguiente(sig);
-                sig.setAnterior(ant);
-                actual.setSiguiente(null);
-                actual.setAnterior(null);
-                actual.setDato(null);
-                cantidadNodos--;
-                return true;
-            }
-            actual = actual.getSiguiente();
-        }
-        return false;
+        return removerObjeto(dato);
     }
 
     /**
-     * {@inheritDoc}
+     * Elimina la última ocurrencia de {@code dato} recorriendo la lista
+     * desde la cola hacia la cabeza.
      *
-     * <p>Recorre la lista desde el final hacia el principio buscando la
-     * última ocurrencia por igualdad de referencia.</p>
+     * @param dato el elemento a eliminar
+     * @return {@code true} si se eliminó, {@code false} en caso contrario
      */
-    @Override
     public boolean removerUltimaOcurrencia(T dato) {
         Nodo<T> actual = cola.getAnterior();
-        while (actual != cabeza) {
-            if (actual.getDato() == dato) {
-                Nodo<T> ant = actual.getAnterior();
-                Nodo<T> sig = actual.getSiguiente();
-                ant.setSiguiente(sig);
-                sig.setAnterior(ant);
-                actual.setSiguiente(null);
-                actual.setAnterior(null);
-                actual.setDato(null);
-                cantidadNodos--;
-                return true;
-            }
+        boolean encontrado = false;
+        for (int j = 0; j < cantidadNodos; j++) {
             actual = actual.getAnterior();
+            if (actual.getDato() == dato) {
+                encontrado = true;
+                break;
+            }
         }
-        return false;
+        if (!encontrado) return false;
+        Nodo<T> anterior = actual.getAnterior();
+        Nodo<T> siguiente = actual.getSiguiente();
+        anterior.setSiguiente(siguiente);
+        siguiente.setAnterior(anterior);
+        actual.setAnterior(null);
+        actual.setSiguiente(null);
+        actual.setDato(null);
+        cantidadNodos--;
+        return true;
     }
 
-    // ── Consulta ─────────────────────────────────────────────────────────────
+    /**
+     * Elimina y retorna el último nodo de la lista.
+     *
+     * @return el nodo eliminado, o {@code null} si la lista está vacía
+     */
+    public Nodo<T> borrarUltimo() {
+        if (cantidadNodos == 0) {
+            System.out.println("No hay nodos restantes");
+            return null;
+        }
+        Nodo<T> nodo = cola.getAnterior();
+        Nodo<T> anterior = nodo.getAnterior();
+        anterior.setSiguiente(cola);
+        cola.setAnterior(anterior);
+        nodo.setSiguiente(null);
+        nodo.setAnterior(null);
+        cantidadNodos--;
+        return nodo;
+    }
+
+    // -------------------------------------------------------------------------
+    // Consulta / Acceso
+    // -------------------------------------------------------------------------
 
     /**
-     * {@inheritDoc}
+     * Verifica si la estructura contiene el objeto dado usando {@link Objects#equals}.
+     * Implementa {@link IEstructuraDeDatos#contiene(Object)}.
+     *
+     * @param o el objeto a buscar
+     * @return {@code true} si existe al menos una ocurrencia
      */
     @Override
-    public T obtener(int indice) {
-        if (indice < 0 || indice >= cantidadNodos) {
-            throw new IndexOutOfBoundsException(
-                    "Índice " + indice + " inválido para lista de tamaño " + cantidadNodos);
-        }
+    public boolean contiene(Object o) {
         Nodo<T> actual = cabeza.getSiguiente();
-        for (int i = 0; i < indice; i++) {
+        int i = 0;
+        while (actual.getSiguiente() != null && !Objects.equals(actual.getDato(), o)) {
+            actual = actual.getSiguiente();
+            i++;
+            if (actual.getSiguiente() != null && Objects.equals(actual.getDato(), o)) {
+                return true;
+            }
+        }
+        return i == 0 && Objects.equals(actual.getDato(), o);
+    }
+
+    /**
+     * Retorna el dato del primer nodo sin eliminarlo.
+     * Equivalente a {@code element()} de {@code LinkedList}.
+     *
+     * @return el primer elemento
+     * @throws NoSuchElementException si la lista está vacía
+     */
+    public T elemento() throws NoSuchElementException {
+        if (cantidadNodos != 0) return cabeza.getSiguiente().getDato();
+        throw new NoSuchElementException("La lista esta vacia");
+    }
+
+    /**
+     * Retorna el elemento en la posición {@code index} sin eliminarlo.
+     * Implementa {@link IEstructuraDeDatos#obtener(int)}.
+     * Equivalente a {@code get(int)} de {@code LinkedList}.
+     *
+     * @param index índice (basado en 0) del elemento a consultar
+     * @return el dato en la posición {@code index}
+     * @throws IndexOutOfBoundsException si {@code index} está fuera del rango {@code [0, size)}
+     */
+    @Override
+    public T obtener(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= cantidadNodos) {
+            throw new IndexOutOfBoundsException("Indice " + index + " invalido para " + cantidadNodos);
+        }
+        Nodo<T> actual = cabeza;
+        for (int j = 0; j <= index; j++) {
             actual = actual.getSiguiente();
         }
         return actual.getDato();
     }
 
     /**
-     * {@inheritDoc}
+     * Retorna el primer elemento sin eliminarlo.
+     * Equivalente a {@code getFirst()} de {@code LinkedList}.
      *
-     * @throws NoSuchElementException si la lista está vacía.
+     * @return el dato del primer nodo
+     * @throws NoSuchElementException si la lista está vacía
      */
-    @Override
-    public T obtenerPrimero() {
-        if (cantidadNodos == 0) {
-            throw new NoSuchElementException("La lista está vacía.");
-        }
-        return cabeza.getSiguiente().getDato();
+    public T obtenerPrimero() throws NoSuchElementException {
+        if (cantidadNodos != 0) return cabeza.getSiguiente().getDato();
+        throw new NoSuchElementException("Lista vacia");
     }
 
     /**
-     * {@inheritDoc}
+     * Retorna el último elemento sin eliminarlo.
+     * Equivalente a {@code getLast()} de {@code LinkedList}.
      *
-     * @throws NoSuchElementException si la lista está vacía.
+     * @return el dato del último nodo
+     * @throws NoSuchElementException si la lista está vacía
      */
-    @Override
-    public T obtenerUltimo() {
-        if (cantidadNodos == 0) {
-            throw new NoSuchElementException("La lista está vacía.");
-        }
-        return cola.getAnterior().getDato();
+    public T obtenerUltimo() throws NoSuchElementException {
+        if (cantidadNodos != 0) return cola.getAnterior().getDato();
+        throw new NoSuchElementException("Lista vacia");
     }
 
     /**
-     * {@inheritDoc}
+     * Reemplaza el elemento en la posición {@code index} por {@code dato}.
+     * Equivalente a {@code set(int, E)} de {@code LinkedList}.
      *
-     * <p>Usa {@link Objects#equals} para la comparación.</p>
+     * @param index índice (basado en 0) del elemento a reemplazar
+     * @param dato  el nuevo valor
+     * @return el dato anterior en esa posición
+     * @throws IndexOutOfBoundsException si {@code index} está fuera de rango
      */
-    @Override
-    public boolean contiene(Object o) {
+    public T reemplazar(int index, T dato) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= cantidadNodos) {
+            throw new IndexOutOfBoundsException("Indice " + index + " invalido");
+        }
+        if (index == 0) {
+            T obj = cabeza.getSiguiente().getDato();
+            cabeza.getSiguiente().setDato(dato);
+            return obj;
+        }
         Nodo<T> actual = cabeza.getSiguiente();
-        while (actual != cola) {
-            if (Objects.equals(actual.getDato(), o)) {
-                return true;
-            }
+        for (int i = 0; i < index; i++) {
             actual = actual.getSiguiente();
         }
-        return false;
+        T elemento = actual.getDato();
+        actual.setDato(dato);
+        return elemento;
     }
 
     /**
-     * {@inheritDoc}
+     * Retorna el índice de la primera ocurrencia del objeto {@code o}.
+     * Equivalente a {@code indexOf(Object)} de {@code LinkedList}.
      *
-     * <p>Retorna {@code -1} si el objeto no se encuentra.</p>
+     * @param o el objeto a buscar
+     * @return índice de la primera ocurrencia, o {@code -1} si no se encuentra
      */
-    @Override
     public int indiceDe(Object o) {
-        Nodo<T> actual = cabeza.getSiguiente();
-        int indice = 0;
-        while (actual != cola) {
-            if (Objects.equals(actual.getDato(), o)) {
-                return indice;
-            }
+        Nodo<T> actual = cabeza;
+        for (int i = 0; i < cantidadNodos; i++) {
             actual = actual.getSiguiente();
-            indice++;
+            if (Objects.equals(actual.getDato(), o)) {
+                return i;
+            }
         }
+        System.out.println("El elemento no se encuentra en la lista");
         return -1;
     }
 
+    // -------------------------------------------------------------------------
+    // API de cola / deque
+    // -------------------------------------------------------------------------
+
     /**
-     * {@inheritDoc}
+     * Inserta el dato al final de la lista (semántica de cola).
      *
-     * <p>Retorna el primer elemento sin eliminarlo, o {@code null} si la lista
-     * está vacía. Semántica de cola (Queue.peek).</p>
-     */
-    @Override
-    public T peek() {
-        if (cantidadNodos == 0) return null;
-        return cabeza.getSiguiente().getDato();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Elimina y retorna el primer elemento, o {@code null} si está vacía.
-     * Semántica de cola (Queue.poll).</p>
-     */
-    @Override
-    public T poll() {
-        if (cantidadNodos == 0) return null;
-        return remover();
-    }
-
-    /**
-     * Retorna (sin eliminar) el primer elemento.
-     * Alias explícito para uso como cola/deque.
-     *
-     * @return El primer elemento.
-     * @throws NoSuchElementException si la lista está vacía.
-     */
-    public T elemento() {
-        if (cantidadNodos == 0) {
-            throw new NoSuchElementException("La lista está vacía.");
-        }
-        return cabeza.getSiguiente().getDato();
-    }
-
-    // ── Modificación ─────────────────────────────────────────────────────────
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public T reemplazar(int indice, T dato) {
-        if (indice < 0 || indice >= cantidadNodos) {
-            throw new IndexOutOfBoundsException(
-                    "Índice " + indice + " inválido para lista de tamaño " + cantidadNodos);
-        }
-        Nodo<T> actual = cabeza.getSiguiente();
-        for (int i = 0; i < indice; i++) {
-            actual = actual.getSiguiente();
-        }
-        T anterior = actual.getDato();
-        actual.setDato(dato);
-        return anterior;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Desvincula todos los nodos internos y restablece el vínculo
-     * cabeza↔cola, liberando referencias para el recolector de basura.</p>
-     */
-    @Override
-    public void limpiar() {
-        Nodo<T> actual = cabeza.getSiguiente();
-        while (actual != cola) {
-            Nodo<T> siguiente = actual.getSiguiente();
-            actual.setDato(null);
-            actual.setAnterior(null);
-            actual.setSiguiente(null);
-            actual = siguiente;
-        }
-        cabeza.setSiguiente(cola);
-        cola.setAnterior(cabeza);
-        cantidadNodos = 0;
-    }
-
-    // ── Tamaño ───────────────────────────────────────────────────────────────
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int size() {
-        return cantidadNodos;
-    }
-
-    // ── Visualización ────────────────────────────────────────────────────────
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Formato de salida: {@code |elemento - indice|}. Si la lista está vacía
-     * imprime el mensaje "Lista vacía".</p>
-     */
-    @Override
-    public void mostrarLista() {
-        if (cantidadNodos == 0) {
-            System.out.println("Lista vacía");
-            return;
-        }
-        System.out.println("Elementos: " + cantidadNodos);
-        Nodo<T> actual = cabeza.getSiguiente();
-        int i = 0;
-        while (actual != cola) {
-            System.out.print("|" + actual.getDato().toString() + " - " + i + "|");
-            actual = actual.getSiguiente();
-            i++;
-        }
-        System.out.println();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Imprime cada elemento en su propia línea con su índice separado
-     * por " - ".</p>
-     */
-    @Override
-    public void mostrarVertical() {
-        if (cantidadNodos == 0) {
-            System.out.println("Lista vacía");
-            return;
-        }
-        System.out.println("Elementos: " + cantidadNodos);
-        Nodo<T> actual = cabeza.getSiguiente();
-        int i = 0;
-        while (actual != cola) {
-            System.out.println(actual.getDato().toString() + " - " + i);
-            actual = actual.getSiguiente();
-            i++;
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object[] toArray() {
-        Object[] arreglo = new Object[cantidadNodos];
-        Nodo<T> actual = cabeza.getSiguiente();
-        for (int i = 0; i < cantidadNodos; i++) {
-            arreglo[i] = actual.getDato();
-            actual = actual.getSiguiente();
-        }
-        return arreglo;
-    }
-
-    /**
-     * Retorna una representación textual de la lista en formato
-     * {@code (elemento - indice)(elemento - indice)...}, o {@code null}
-     * si la lista está vacía.
-     *
-     * @return Cadena con los elementos de la lista, o {@code null}.
-     */
-    @Override
-    public String toString() {
-        if (cantidadNodos == 0) return null;
-        StringBuilder sb = new StringBuilder();
-        Nodo<T> actual = cabeza.getSiguiente();
-        int i = 0;
-        while (actual != cola) {
-            sb.append("(").append(actual.getDato().toString()).append(" - ").append(i).append(")");
-            actual = actual.getSiguiente();
-            i++;
-        }
-        return sb.toString();
-    }
-
-    // ── Métodos de conveniencia (compatibilidad con Deque) ───────────────────
-
-    /**
-     * Inserta el dato al final. Equivale a {@link #insertar}.
-     *
-     * @param dato Elemento a insertar.
-     * @return {@code true} si la inserción fue exitosa.
+     * @param dato el elemento a insertar
+     * @return {@code true} si la inserción fue exitosa
      */
     public boolean offer(T dato) {
         return insertar(dato);
     }
 
     /**
-     * Inserta el dato al principio.
+     * Inserta el dato al inicio de la lista.
      *
-     * @param dato Elemento a insertar.
-     * @return {@code true} si la inserción fue exitosa.
+     * @param dato el elemento a insertar
+     * @return {@code true} si la inserción fue exitosa
      */
     public boolean offerFirst(T dato) {
         int antes = cantidadNodos;
@@ -561,12 +464,118 @@ public class ListaDoble<T> implements IListaDoble<T> {
     }
 
     /**
-     * Inserta el dato al final. Alias de {@link #insertar}.
+     * Inserta el dato al final de la lista.
      *
-     * @param dato Elemento a insertar.
-     * @return {@code true} si la inserción fue exitosa.
+     * @param dato el elemento a insertar
+     * @return {@code true} si la inserción fue exitosa
      */
     public boolean offerLast(T dato) {
         return insertar(dato);
+    }
+
+    /**
+     * Elimina y retorna el primer elemento, o {@code null} si la lista está vacía.
+     *
+     * @return el primer elemento, o {@code null}
+     */
+    public T poll() {
+        return cantidadNodos != 0 ? remover() : null;
+    }
+
+    /**
+     * Retorna el primer elemento sin eliminarlo, o {@code null} si la lista está vacía.
+     *
+     * @return el primer elemento, o {@code null}
+     */
+    public T peek() {
+        return cantidadNodos != 0 ? elemento() : null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Utilidades
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retorna todos los elementos de la lista como un arreglo de {@code Object}.
+     *
+     * @return arreglo con los elementos en orden de inserción
+     */
+    public Object[] toArray() {
+        Nodo<T> actual = cabeza.getSiguiente();
+        Object[] array = new Object[cantidadNodos];
+        for (int i = 0; i < cantidadNodos; i++) {
+            array[i] = actual.getDato();
+            actual = actual.getSiguiente();
+        }
+        return array;
+    }
+
+    /**
+     * Retorna el número de elementos con dato real actualmente en la lista.
+     *
+     * @return tamaño de la lista
+     */
+    public int size() {
+        return cantidadNodos;
+    }
+
+    /**
+     * Imprime cada elemento junto a su índice en formato horizontal.
+     * Útil para depuración en consola.
+     */
+    public void mostrarLista() {
+        if (size() != 0) {
+            System.out.println("Elementos: " + size());
+            Nodo<T> actual = cabeza.getSiguiente();
+            int i = 0;
+            while (actual.getSiguiente() != null) {
+                System.out.print("|" + actual.getDato().toString() + " - " + i + "|");
+                actual = actual.getSiguiente();
+                i++;
+            }
+            return;
+        }
+        System.out.println("Lista vacia");
+    }
+
+    /**
+     * Imprime cada elemento junto a su índice en formato vertical (un elemento por línea).
+     */
+    public void mostrarVertical() {
+        if (size() != 0) {
+            System.out.println("Elementos: " + size());
+            Nodo<T> actual = cabeza.getSiguiente();
+            int i = 0;
+            while (actual.getSiguiente() != null) {
+                System.out.println(actual.getDato().toString() + " - " + i);
+                actual = actual.getSiguiente();
+                i++;
+            }
+            return;
+        }
+        System.out.println("Lista vacia");
+    }
+
+    /**
+     * Retorna una representación en cadena de todos los elementos con sus índices.
+     *
+     * @return cadena con el formato {@code (dato - índice)(dato - índice)...},
+     *         o {@code null} si la lista está vacía
+     */
+    @Override
+    public String toString() {
+        if (size() != 0) {
+            StringBuilder info = new StringBuilder();
+            Nodo<T> actual = cabeza.getSiguiente();
+            int i = 0;
+            while (actual.getSiguiente() != null) {
+                info.append("(").append(actual.getDato().toString())
+                        .append(" - ").append(i).append(")");
+                actual = actual.getSiguiente();
+                i++;
+            }
+            return info.toString();
+        }
+        return null;
     }
 }
