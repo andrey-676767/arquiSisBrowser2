@@ -248,11 +248,11 @@ public class BrowserController {
         switch (op) {
             case 1 -> {
                 System.out.print("Nuevo título: ");
-                marcadores.editar(titulo, cat, "titulo", scanner.nextLine().trim());
+                marcadores.editar(titulo, scanner.nextLine().trim(), "titulo", cat);
             }
             case 2 -> {
                 System.out.print("Nueva URL: ");
-                marcadores.editar(titulo, cat, "url", scanner.nextLine().trim());
+                marcadores.editar(titulo, titulo, "url", scanner.nextLine().trim());
             }
             case 3 -> {
                 System.out.print("Nueva categoría: ");
@@ -291,7 +291,7 @@ public class BrowserController {
 
         while (!volver) {
             System.out.println("\n    === Administrador de Pestañas ===");
-            tabManager.getTabs().toString();
+            System.out.println(tabManager.getTabs().toString());
             System.out.println("""
                     
                     0. Volver.
@@ -357,6 +357,7 @@ public class BrowserController {
         while (!volver) {
             System.out.println("\n    === Administrador de Grupos ===");
             System.out.println("Grupos activos: " + tabManager.getCantidadGrupos());
+            System.out.println(tabManager.getTabs().toString());
             System.out.println("""
                     
                     0. Volver.
@@ -403,19 +404,25 @@ public class BrowserController {
         while (!exito) {
             System.out.println("\n    === Administrador de Sesión ===");
             System.out.println("Grupos activos: " + tabManager.getCantidadGrupos());
+            System.out.println(usuarios.getUsuarios().toString());
             System.out.println("""
                     
                     0. Volver.
                     1. Iniciar Sesión.
                     2. Cerrar Sesión.
                     3. Registrarse.
-                    4. Borrar usuario.
+                    4. Borrar este usuario.
+                    5. Editar este usuario.
                     """);
             
-            int op = leerInt(0, 3);
+            int op = leerInt(0, 5);
             switch (op) {
                 case 0 -> exito = true;
                 case 1 -> {
+                    if (usuarios.haySesionActiva()) {
+                        System.out.println("Sesión activa, cerrándola...");
+                        usuarios.cerrarSesion();
+                    }
                     System.out.println("\n    === Inicio de Sesión ===");
                     System.out.print("Usuario: ");
                     String user = scanner.nextLine().trim();
@@ -424,8 +431,6 @@ public class BrowserController {
 
                     try {
                         usuarios.iniciarSesion(user, pass);
-                        System.out.println("Sesión iniciada correctamente.");
-                        marcadores.cargarEnArbol();
                         exito = true;
                     } catch (Exception e) {
                         System.out.println("Credenciales incorrectas. Intente de nuevo.");
@@ -444,16 +449,29 @@ public class BrowserController {
                     System.out.print("Contraseña: ");
                     String pass = scanner.nextLine().trim();
 
-                    try {
-                        usuarios.registrarse(user, pass);
-                        System.out.println("Registrado correctamente.");
-                        marcadores.cargarEnArbol();
-                        exito = true;
-                    } catch (Exception e) {
-                        System.out.println("Error. Intente de nuevo.");
-                        System.out.println("(Escriba 'cancelar' en usuario para volver)");
-                        if (user.equalsIgnoreCase("cancelar")) return;
-                    }
+                    usuarios.registrarse(user, pass);
+                    System.out.println("Registrado correctamente.");
+                    exito = true;
+                }
+                case 4 -> {
+                    if (usuarios.haySesionActiva()) {
+                        System.out.println("¿Está seguro de querer borrar este usuario?");
+                        int eleccion = leerInt(0, 1);
+
+                        if (eleccion == 1) {
+                            usuarios.borrar(usuarios.getUsuarioActual().getNombre());
+                        } else return; 
+                    } 
+                    return;
+                }
+                case 5 -> {
+                    System.out.println("\n    === Edición de Usuario ===");
+                    System.out.print("Nuevo Usuario: ");
+                    String user = scanner.nextLine().trim();
+                    System.out.print("Nueva Contraseña: ");
+                    String pass = scanner.nextLine().trim();
+
+                    usuarios.editar(user, pass);
                 }
                 default -> System.out.println("Opción no válida.");
             }
