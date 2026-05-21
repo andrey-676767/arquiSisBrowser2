@@ -13,12 +13,14 @@ package com.browser.structures.interfaces;
 public interface IEstructuraDeDatos<T> {
 
     /**
-     * Inserta un dato en la estructura.
+     * Inserta un dato en la estructura (al final).
      *
      * @param dato el elemento a insertar
      * @return {@code true} si la inserción fue exitosa, {@code false} en caso contrario
      */
     boolean insertar(T dato);
+
+    void insertarAlPrincipio(T dato);
 
     /**
      * Elimina y retorna el elemento en la posición indicada.

@@ -2,6 +2,7 @@ package com.browser.repository;
 
 import com.browser.model.Usuario;
 import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 import java.sql.*;
 
@@ -80,8 +81,8 @@ public class SQLiteRepository implements IRepositorio<Usuario> {
      * @return {@link ListaDoble} con todos los {@link Usuario}; vacía si no hay registros
      */
     @Override
-    public ListaDoble<Usuario> cargarTodos() {
-        ListaDoble<Usuario> lista = new ListaDoble<>();
+    public IEstructuraDeDatos<Usuario> cargarTodos() {
+        IEstructuraDeDatos<Usuario> lista = new ListaDoble<>();
         String sql = "SELECT nombre, contrasena FROM usuarios";
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement();
@@ -95,6 +96,11 @@ public class SQLiteRepository implements IRepositorio<Usuario> {
             System.out.println("-> [DB] Error al cargar usuarios: " + e.getMessage());
         }
         return lista;
+    }
+
+    @Override
+    public IEstructuraDeDatos<Usuario> cargarSegun(Usuario usuario) {
+        return this.cargarTodos();
     }
 
     /**

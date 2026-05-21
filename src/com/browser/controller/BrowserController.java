@@ -134,6 +134,8 @@ public class BrowserController {
         scanner.close();
     }
 
+    
+
     // ── Navegación ────────────────────────────────────────────────────────────
 
     /**
@@ -172,6 +174,7 @@ public class BrowserController {
                 System.out.println("No puede administrar marcadores sin una cuenta.");
                 return;
             }
+            marcadores.cargarEnArbol(usuarios.getUsuarioActual().getNombre());
 
             System.out.println("\n    === Administrador de Marcadores ===");
             marcadores.mostrarMarcadores();
@@ -210,7 +213,7 @@ public class BrowserController {
         System.out.print("Categoría: ");
         String categoria = scanner.nextLine().trim();
         try {
-            Marcador existente = marcadores.buscarMarcador(titulo);
+            marcadores.buscarMarcador(titulo);
         } catch (Exception e) {
             // TODO: handle exception
         }
@@ -450,15 +453,13 @@ public class BrowserController {
 
                     try {
                         usuarios.iniciarSesion(user, pass);
-                        if (usuarios.haySesionActiva()) {
-                            marcadores.cargarEnArbol();
-                        }
                         exito = true;
                     } catch (Exception e) {
                         System.out.println("Credenciales incorrectas. Intente de nuevo.");
                         System.out.println("(Escriba 'cancelar' en usuario para volver)");
                         if (user.equalsIgnoreCase("cancelar")) return;
                     }
+                    
                 }
                 case 2 -> {
                     usuarios.cerrarSesion();
@@ -477,7 +478,7 @@ public class BrowserController {
                 }
                 case 4 -> {
                     if (usuarios.haySesionActiva()) {
-                        System.out.println("¿Está seguro de querer borrar este usuario?");
+                        System.out.println("¿Está seguro de querer borrar este usuario? \n 0 - 1");
                         int eleccion = leerInt(0, 1);
 
                         if (eleccion == 1) {
@@ -554,7 +555,7 @@ public class BrowserController {
         }
         // DescargaManager expone la lista para iteración; usamos el cast seguro
         if (descargaManager instanceof DescargaManager dm) {
-            dm.getDescargas().mostrarVertical();
+            dm.getDescargas().toString();
         }
     }
 
@@ -587,7 +588,7 @@ public class BrowserController {
                 4. Administrador de marcadores.
                 5. Administrador de pestañas.
                 6. Administrador de grupos.
-                7. Iniciar sesión.
+                7. Gestión de Usuarios.
                 8. Administrador de descargas.
                 9. Salir.
                 """);

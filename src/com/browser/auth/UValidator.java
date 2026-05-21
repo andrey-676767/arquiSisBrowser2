@@ -2,7 +2,7 @@ package com.browser.auth;
 
 import com.browser.model.Usuario;
 import com.browser.repository.IRepositorio;
-import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Implementación concreta de {@link IAutenticador} que valida credenciales
@@ -52,11 +52,11 @@ public class UValidator implements IAutenticador {
      */
     @Override
     public void login(String user, String pass) {
-        ListaDoble<Usuario> usuarios = repositorio.cargarTodos();
+        IEstructuraDeDatos<Usuario> usuarios = repositorio.cargarTodos();
         if (usuarios.empty()) {
             System.out.println("-> [AUTH] ¡No hay usuarios registrados!");
         }
-        for (int i = 0; i < usuarios.size(); i++) {
+        for (int i = 0; i < usuarios.cantidad(); i++) {
             Usuario u = usuarios.obtener(i);
             if (u.getNombre().equals(user) && u.getContrasena().equals(pass)) {
                 this.usuarioActual = u;
@@ -79,6 +79,7 @@ public class UValidator implements IAutenticador {
             usuarioActual = null;
         } else {
             System.out.println("-> [AUTH] No hay sesión activa.");
+            usuarioActual = null;
         }
     }
 

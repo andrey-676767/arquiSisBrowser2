@@ -2,6 +2,7 @@ package com.browser.services;
 
 import com.browser.model.Descarga;
 import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Servicio que gestiona la cola de descargas activas del navegador.
@@ -37,7 +38,7 @@ public class DescargaManager implements IDescargaManager {
      * Lista de descargas activas. El elemento en la posición 0 es siempre
      * la descarga más reciente.
      */
-    private final ListaDoble<Descarga> descargas;
+    private final IEstructuraDeDatos<Descarga> descargas;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ public class DescargaManager implements IDescargaManager {
      *
      * @return La {@link ListaDoble} interna de descargas; nunca {@code null}.
      */
-    public ListaDoble<Descarga> getDescargas() {
+    public IEstructuraDeDatos<Descarga> getDescargas() {
         return descargas;
     }
 

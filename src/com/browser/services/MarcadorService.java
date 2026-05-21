@@ -4,7 +4,7 @@ import com.browser.model.Categoria;
 import com.browser.model.Marcador;
 import com.browser.repository.IRepositorio;
 import com.browser.structures.ArbolBinario;
-import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Servicio que encapsula la lógica de negocio para la gestión de marcadores.
@@ -48,14 +48,15 @@ public class MarcadorService {
     // -------------------------------------------------------------------------
 
     /**
-     * Carga todos los marcadores del repositorio y los inserta en el árbol
+     * Carga todos los marcadores del repositorio del usuario en especifico y los inserta en el árbol
      * de categorías. Si el repositorio está vacío se inicializa el árbol
      * con una categoría vacía por defecto.
      */
-    public void cargarEnArbol() {
-        ListaDoble<Marcador> todos = db.cargarTodos();
+    public void cargarEnArbol(String usuario) {
+        Marcador temp = new Marcador("", "", "", usuario);
+        IEstructuraDeDatos<Marcador> todos = db.cargarSegun(temp);
 
-        if (todos.size() == 0) {
+        if (todos.empty()) {
             Marcador placeholder = new Marcador("", "inicio", "General", "CHROME");
             marcadores = new ArbolBinario<>(new Categoria("G", placeholder));
             return;
@@ -68,10 +69,10 @@ public class MarcadorService {
         marcadores = new ArbolBinario<>(raizCat);
 
         // Insertar el resto
-        for (int i = 1; i < todos.size(); i++) {
+        for (int i = 1; i < todos.cantidad(); i++) {
             insertarEnArbol(todos.obtener(i));
         }
-        System.out.println("-> [MarcadorService] Árbol reconstruido con " + todos.size() + " marcadores.");
+        System.out.println("-> [MarcadorService] Árbol reconstruido con " + todos.cantidad() + " marcadores.");
     }
 
     /**
@@ -88,7 +89,7 @@ public class MarcadorService {
         if (!marcadores.buscar(aux)) {
             marcadores.insertarOrdenado(new Categoria(inicial, m));
         } else {
-            marcadores.obtener(aux).contenido.insertarAlFinal(m);
+            marcadores.obtener(aux).contenido.insertar(m);
         }
     }
 
@@ -111,7 +112,7 @@ public class MarcadorService {
             Marcador temporal = this.buscarMarcador(titulo);
             temporal.toString();
         } catch (NullPointerException e) {
-             Marcador nuevo = new Marcador(url, titulo, categoria, usuario);
+            Marcador nuevo = new Marcador(url, titulo, categoria, usuario);
             db.guardar(nuevo);
             insertarEnArbol(nuevo);
             System.out.println("-> [MarcadorService] Marcador agregado: " + titulo);
@@ -147,7 +148,7 @@ public class MarcadorService {
         cat.borrar(titulo);
         db.borrar(titulo);
 
-        if (cat.contenido.size() == 0) {
+        if (cat.contenido.cantidad() == 0) {
             marcadores.eliminarOrdenadoA(aux);
             System.out.println("-> [MarcadorService] Categoría vacía eliminada: " + categoria);
         }
@@ -187,7 +188,7 @@ public class MarcadorService {
         m.setCategoria(nuevaCategoria);
 
         // Limpiar categoría original si quedó vacía
-        if (catActual.contenido.size() == 0) {
+        if (catActual.contenido.cantidad() == 0) {
             String inicialAnterior = catActual.getNombre().substring(0, 1).toUpperCase();
             marcadores.eliminarOrdenadoA(new Categoria(inicialAnterior, null));
         }

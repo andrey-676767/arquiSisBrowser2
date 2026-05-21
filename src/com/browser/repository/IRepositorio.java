@@ -1,6 +1,6 @@
 package com.browser.repository;
 
-import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Contrato genérico para el acceso a datos de cualquier entidad del sistema.
@@ -29,10 +29,20 @@ public interface IRepositorio<T> {
     /**
      * Recupera todas las entidades disponibles en el almacenamiento.
      *
-     * @return una {@link ListaDoble} con todas las entidades; nunca {@code null}
+     * @return una {@link IEstructuraDeDatos} con todas las entidades; nunca {@code null}
      *         (puede estar vacía)
      */
-    ListaDoble<T> cargarTodos();
+    IEstructuraDeDatos<T> cargarTodos();
+
+    /**
+     * Recupera las entidades disponibles en el almacenamiento según un parámetro.
+     *
+     * @param dato la entidad que se busca, normalmente strings.
+     * 
+     * @return una {@link IEstructuraDeDatos} con todas las entidades; nunca {@code null}
+     *         (puede estar vacía)
+     */
+    IEstructuraDeDatos<T> cargarSegun(T dato);
 
     /**
      * Elimina la entidad identificada por {@code id} del almacenamiento.
@@ -50,4 +60,5 @@ public interface IRepositorio<T> {
      *             coincidir con un registro existente
      */
     void actualizar(T dato);
+
 }

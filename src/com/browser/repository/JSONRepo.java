@@ -2,7 +2,7 @@ package com.browser.repository;
 
 import com.browser.model.Marcador;
 import com.browser.structures.ListaDoble;
-import com.browser.services.UsuarioService;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ public class JSONRepo implements IRepositorio<Marcador> {
     private final String loc;
 
     /** Caché en memoria sincronizada con el archivo en cada operación. */
-    private ListaDoble<Marcador> cache;
+    private IEstructuraDeDatos<Marcador> cache;
 
     /**
      * Construye el repositorio apuntando a la ubicación indicada.
@@ -73,14 +73,16 @@ public class JSONRepo implements IRepositorio<Marcador> {
      */
     @Override
     public void guardar(Marcador dato) {
-        for (int i = 0; i < cache.size(); i++) {
+        for (int i = 0; i < cache.cantidad(); i++) {
             if (cache.obtener(i).getTitulo().equals(dato.getTitulo())) {
                 System.out.println("-> [JSON] Marcador ya existe: " + dato.getTitulo());
                 return;
             }
         }
         cache.insertar(dato);
-        escribirArchivo(cache);
+        IEstructuraDeDatos<Marcador> todos_marcadores = this.leerArchivo();
+        todos_marcadores.insertar(dato);
+        escribirArchivo(todos_marcadores);
         System.out.println("-> [JSON] Marcador guardado: " + dato.getTitulo());
     }
 
@@ -90,9 +92,45 @@ public class JSONRepo implements IRepositorio<Marcador> {
      * @return {@link ListaDoble} con todos los {@link Marcador}; nunca {@code null}
      */
     @Override
-    public ListaDoble<Marcador> cargarTodos() {
+    public IEstructuraDeDatos<Marcador> cargarTodos() {
         this.cache = leerArchivo();
         return cache;
+    }
+
+
+    /* 
+    *Carga según un usuario
+    *
+    */
+    @Override
+    public IEstructuraDeDatos<Marcador> cargarSegun(Marcador dato) {
+        IEstructuraDeDatos<Marcador> lista = new ListaDoble<>();
+        try {
+            String contenido = new String(
+                    Files.readAllBytes(Paths.get(loc)), StandardCharsets.UTF_8);
+
+            // Extraer cada bloque { ... }
+            int pos = 0;
+            while (pos < contenido.length()) {
+                int inicio = contenido.indexOf('{', pos);
+                int fin = contenido.indexOf('}', inicio);
+                if (inicio == -1 || fin == -1) break;
+
+                String bloque = contenido.substring(inicio + 1, fin);
+                String titulo = extraerValor(bloque, "titulo");
+                String url = extraerValor(bloque, "url");
+                String categoria = extraerValor(bloque, "categoria");
+                String usuario = extraerValor(bloque, "user");
+
+                if (titulo != null && url != null && categoria != null && usuario.equals(dato.getUsuario())) {
+                    lista.insertar(new Marcador(url, titulo, categoria, usuario));
+                }
+                pos = fin + 1;
+            }
+        } catch (IOException e) {
+            System.out.println("-> [JSON] Error al leer archivo: " + e.getMessage());
+        }
+        return lista;
     }
 
     /**
@@ -103,7 +141,7 @@ public class JSONRepo implements IRepositorio<Marcador> {
      */
     @Override
     public void borrar(String id) {
-        for (int i = 0; i < cache.size(); i++) {
+        for (int i = 0; i < cache.cantidad(); i++) {
             if (cache.obtener(i).getTitulo().equals(id)) {
                 cache.remover(i);
                 escribirArchivo(cache);
@@ -123,7 +161,7 @@ public class JSONRepo implements IRepositorio<Marcador> {
      */
     @Override
     public void actualizar(Marcador dato) {
-        for (int i = 0; i < cache.size(); i++) {
+        for (int i = 0; i < cache.cantidad(); i++) {
             Marcador m = cache.obtener(i);
             if (m.getTitulo().equals(dato.getTitulo())) {
                 m.setUrl(dato.getUrl());
@@ -147,17 +185,17 @@ public class JSONRepo implements IRepositorio<Marcador> {
      *
      * @param lista lista de marcadores a serializar
      */
-    private void escribirArchivo(ListaDoble<Marcador> lista) {
+    private void escribirArchivo(IEstructuraDeDatos<Marcador> lista) {
         StringBuilder sb = new StringBuilder("[\n");
-        for (int i = 0; i < lista.size(); i++) {
+        for (int i = 0; i < lista.cantidad(); i++) {
             Marcador m = lista.obtener(i);
             sb.append("  {\n")
               .append("    \"titulo\": \"").append(escapar(m.getTitulo())).append("\",\n")
               .append("    \"url\": \"").append(escapar(m.getUrl())).append("\",\n")
-              .append("    \"categoria\": \"").append(escapar(m.getCategoria())).append("\"\n")
+              .append("    \"categoria\": \"").append(escapar(m.getCategoria())).append("\",\n")
               .append("    \"user\": \"").append(escapar(m.getUsuario())).append("\"\n")
               .append("  }");
-            if (i < lista.size() - 1) sb.append(",");
+            if (i < lista.cantidad() - 1) sb.append(",");
             sb.append("\n");
         }
         sb.append("]");
@@ -180,9 +218,9 @@ public class JSONRepo implements IRepositorio<Marcador> {
      * @return lista de {@link Marcador} deserializados; vacía si hay error
      *         o el archivo está vacío
      */
-    private ListaDoble<Marcador> leerArchivo() {
+    private IEstructuraDeDatos<Marcador> leerArchivo() {
         
-        ListaDoble<Marcador> lista = new ListaDoble<>();
+        IEstructuraDeDatos<Marcador> lista = new ListaDoble<>();
         try {
             String contenido = new String(
                     Files.readAllBytes(Paths.get(loc)), StandardCharsets.UTF_8);
@@ -198,9 +236,9 @@ public class JSONRepo implements IRepositorio<Marcador> {
                 String titulo = extraerValor(bloque, "titulo");
                 String url = extraerValor(bloque, "url");
                 String categoria = extraerValor(bloque, "categoria");
-                String usuario = extraerValor(bloque, "usuario");
+                String usuario = extraerValor(bloque, "user");
 
-                if (titulo != null && url != null && categoria != null && usuario != null /*usuario == usuarios.getUsuarioActual().getNombre()*/) {
+                if (titulo != null && url != null && categoria != null && usuario != null) {
                     lista.insertar(new Marcador(url, titulo, categoria, usuario));
                 }
                 pos = fin + 1;
@@ -210,8 +248,6 @@ public class JSONRepo implements IRepositorio<Marcador> {
         }
         return lista;
     }
-
-    // TODO: Implementar marcadores por usuario 
 
     /**
      * Extrae el valor de una clave JSON del formato {@code "clave": "valor"}

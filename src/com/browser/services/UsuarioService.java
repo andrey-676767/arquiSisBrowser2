@@ -4,6 +4,7 @@ import com.browser.auth.IAutenticador;
 import com.browser.model.Usuario;
 import com.browser.repository.IRepositorio;
 import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Servicio que encapsula la lógica de negocio relacionada con la gestión
@@ -26,7 +27,7 @@ public class UsuarioService {
     private final IAutenticador autenticador;
 
     /** Caché en memoria de los usuarios cargados del repositorio. */
-    private ListaDoble<Usuario> usuarios;
+    private IEstructuraDeDatos<Usuario> usuarios;
 
     /** Usuario con sesión activa; {@code null} si no hay sesión. */
     private Usuario usuarioActual;
@@ -63,7 +64,7 @@ public class UsuarioService {
     public void iniciarSesion(String nombre, String contrasena) {
         autenticador.login(nombre, contrasena);
         // Buscar el usuario en caché local para asignarlo como actual
-        for (int i = 0; i < usuarios.size(); i++) {
+        for (int i = 0; i < usuarios.cantidad(); i++) {
             Usuario u = usuarios.obtener(i);
             if (u.getNombre().equals(nombre)) {
                 this.usuarioActual = u;
@@ -94,7 +95,7 @@ public class UsuarioService {
      */
     public void agregar(String nombre, String contrasena) {
         // Verificar unicidad en caché antes de persistir
-        for (int i = 0; i < usuarios.size(); i++) {
+        for (int i = 0; i < usuarios.cantidad(); i++) {
             if (usuarios.obtener(i).getNombre().equals(nombre)) {
                 System.out.println("-> [UsuarioService] Ya existe un usuario con ese nombre.");
                 return;
@@ -115,7 +116,7 @@ public class UsuarioService {
      */
     public void borrar(String nombre) {
         db.borrar(nombre);
-        for (int i = 0; i < usuarios.size(); i++) {
+        for (int i = 0; i < usuarios.cantidad(); i++) {
             if (usuarios.obtener(i).getNombre().equals(nombre)) {
                 usuarios.remover(i);
                 break;
@@ -124,6 +125,7 @@ public class UsuarioService {
         if (usuarioActual != null && usuarioActual.getNombre().equals(nombre)) {
             System.out.println("-> [UsuarioService] El usuario activo fue eliminado; cerrando sesión.");
             cerrarSesion();
+            this.usuarioActual = null;
         }
         System.out.println("-> [UsuarioService] Usuario eliminado: " + nombre);
     }
@@ -145,7 +147,7 @@ public class UsuarioService {
         // Si cambia el nombre, borrar el registro anterior y crear uno nuevo
         if (!nombreAnterior.equals(nuevoNombre)) {
             db.borrar(nombreAnterior);
-            for (int i = 0; i < usuarios.size(); i++) {
+            for (int i = 0; i < usuarios.cantidad(); i++) {
                 if (usuarios.obtener(i).getNombre().equals(nombreAnterior)) {
                     usuarios.remover(i);
                     break;
@@ -180,7 +182,7 @@ public class UsuarioService {
      *
      * @return {@link ListaDoble} con todos los usuarios; nunca {@code null}
      */
-    public ListaDoble<Usuario> getUsuarios() {
+    public IEstructuraDeDatos<Usuario> getUsuarios() {
         return usuarios;
     }
 

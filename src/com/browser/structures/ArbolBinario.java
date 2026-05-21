@@ -1,5 +1,7 @@
 package com.browser.structures;
 
+import com.browser.structures.interfaces.IEstructuraDeDatos;
+
 /**
  * Árbol binario de búsqueda (BST) genérico.
  *
@@ -265,10 +267,10 @@ public class ArbolBinario<T extends Comparable<T>> {
      * Usa una {@link ListaDoble} como cola auxiliar.
      */
     public void recorrer() {
-        ListaDoble<NodoArbol<T>> q = new ListaDoble<>();
+        IEstructuraDeDatos<NodoArbol<T>> q = new ListaDoble<>();
         q.insertar(this.raiz);
-        while (q.size() != 0) {
-            NodoArbol<T> actual = q.remover();
+        while (q.cantidad() != 0) {
+            NodoArbol<T> actual = q.pop();
             System.out.println(actual.info);
             @SuppressWarnings("unchecked")
             NodoArbol<T>[] hijos = new NodoArbol[2];

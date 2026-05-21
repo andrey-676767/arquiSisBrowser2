@@ -1,6 +1,7 @@
 package com.browser.model;
 
 import com.browser.structures.ListaDoble;
+import com.browser.structures.interfaces.IEstructuraDeDatos;
 
 /**
  * Agrupación de {@link Marcador} bajo un nombre común.
@@ -22,7 +23,7 @@ public class Categoria implements Comparable<Categoria> {
      * Lista de marcadores que pertenecen a esta categoría.
      * Acceso público para compatibilidad con operaciones del árbol.
      */
-    public ListaDoble<Marcador> contenido;
+    public IEstructuraDeDatos<Marcador> contenido;
 
     /**
      * Alfabeto en mayúsculas usado para calcular el índice de comparación.
@@ -105,7 +106,7 @@ public class Categoria implements Comparable<Categoria> {
      * @param marcador el marcador a agregar; no debe ser {@code null}
      */
     public void agregar(Marcador marcador) {
-        contenido.insertarAlFinal(marcador);
+        contenido.insertar(marcador);
     }
 
     /**
@@ -115,7 +116,7 @@ public class Categoria implements Comparable<Categoria> {
      * @param titulo título del marcador a eliminar
      */
     public void borrar(String titulo) {
-        for (int i = 0; i < contenido.size(); i++) {
+        for (int i = 0; i < contenido.cantidad(); i++) {
             if (contenido.obtener(i).getTitulo().equals(titulo)) {
                 contenido.remover(i);
                 return;
@@ -132,7 +133,7 @@ public class Categoria implements Comparable<Categoria> {
      * @return el {@link Marcador} extraído, o {@code null} si no se encontró
      */
     public Marcador pop(String titulo) {
-        for (int i = 0; i < contenido.size(); i++) {
+        for (int i = 0; i < contenido.cantidad(); i++) {
             if (contenido.obtener(i).getTitulo().equals(titulo)) {
                 return contenido.remover(i);
             }
@@ -148,7 +149,7 @@ public class Categoria implements Comparable<Categoria> {
      * @return el {@link Marcador} encontrado, o {@code null} si no existe
      */
     public Marcador obtener(String titulo) {
-        for (int i = 0; i < contenido.size(); i++) {
+        for (int i = 0; i < contenido.cantidad(); i++) {
             Marcador aux = contenido.obtener(i);
             if (aux.getTitulo().equals(titulo)) {
                 return aux;
