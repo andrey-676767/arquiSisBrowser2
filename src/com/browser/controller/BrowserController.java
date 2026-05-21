@@ -1,7 +1,6 @@
 package com.browser.controller;
 
 import com.browser.model.Marcador;
-import com.browser.model.Tab;
 import com.browser.services.DescargaManager;
 import com.browser.services.IDescargaManager;
 import com.browser.services.MarcadorService;
@@ -379,7 +378,7 @@ public class BrowserController {
         while (!volver) {
             System.out.println("\n    === Administrador de Grupos ===");
             System.out.println("Grupos activos: " + tabManager.getCantidadGrupos());
-            System.out.println(tabManager.getTabs().toString());
+            System.out.println(tabManager.getGrupos().toString());
             System.out.println("""
                     
                     0. Volver.
@@ -555,7 +554,7 @@ public class BrowserController {
         }
         // DescargaManager expone la lista para iteración; usamos el cast seguro
         if (descargaManager instanceof DescargaManager dm) {
-            dm.getDescargas().toString();
+            System.out.println(dm.getDescargas().toString()); 
         }
     }
 
@@ -569,9 +568,8 @@ public class BrowserController {
         System.out.println("\n══════════════════════════════════════════");
         System.out.println("Grupo activo | Pestañas abiertas:");
         tabManager.getTabs().toString();
-        Tab actual = tabManager.getTabActual();
-        System.out.println("URL actual : " + actual.getUrl());
-        System.out.println("Título     : " + actual.getTitulo());
+        System.out.println("URL actual : " + tabManager.getTabActual().getUrl());
+        System.out.println("Título     : " + tabManager.getTabActual().getTitulo());
         System.out.println("══════════════════════════════════════════");
     }
 

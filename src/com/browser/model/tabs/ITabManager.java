@@ -1,6 +1,7 @@
 package com.browser.model.tabs;
 
 import com.browser.model.Tab;
+import com.browser.services.TabService;
 import com.browser.structures.ListaDoble;
 import com.browser.structures.interfaces.IEstructuraDeDatos;
 
@@ -65,6 +66,13 @@ public interface ITabManager {
      *         actual; nunca {@code null}.
      */
     IEstructuraDeDatos<Tab> getTabs();
+
+    /**
+     * Retorna la lista completa de grupos de pestañas.
+     *
+     * @return {@link ListaDoble} con todos los grupos; nunca {@code null}.
+     */
+    IEstructuraDeDatos<Tab> getGrupos();
 
     /**
      * Retorna el número de grupos de pestañas existentes.

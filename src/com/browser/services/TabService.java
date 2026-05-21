@@ -155,7 +155,12 @@ public class TabService implements ITabManager, ITabHistory {
      */
     @Override
     public IEstructuraDeDatos<Tab> getTabs() {
-        return grupoActual;
+        return this.grupoActual;
+    }
+
+    @Override
+    public IEstructuraDeDatos<IEstructuraDeDatos<Tab>> getGrupos() {
+        return this.grupos;
     }
 
     /**
