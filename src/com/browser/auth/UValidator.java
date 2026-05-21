@@ -65,6 +65,7 @@ public class UValidator implements IAutenticador {
             }
         }
         System.out.println("-> [AUTH] Credenciales incorrectas o inexistentes.");
+        this.usuarioActual = null;
     }
 
     /**

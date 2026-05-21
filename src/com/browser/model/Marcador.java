@@ -18,6 +18,9 @@ public class Marcador {
     /** Nombre de la categoría a la que pertenece este marcador. */
     private String categoria;
 
+    /* Usuario al que le pertenece*/
+    private String usuario;
+
     /**
      * Construye un marcador vacío con cadenas vacías en todos sus campos.
      * Útil para inicializar arreglos o colecciones antes de asignar valores.
@@ -26,6 +29,7 @@ public class Marcador {
         this.url = "";
         this.titulo = "";
         this.categoria = "";
+        this.usuario = "";
     }
 
     /**
@@ -35,10 +39,11 @@ public class Marcador {
      * @param titulo    nombre o título del marcador; no debe ser {@code null}
      * @param categoria nombre de la categoría a la que pertenece; no debe ser {@code null}
      */
-    public Marcador(String url, String titulo, String categoria) {
+    public Marcador(String url, String titulo, String categoria, String usuario) {
         this.url = url;
         this.titulo = titulo;
         this.categoria = categoria;
+        this.usuario = usuario;
     }
 
     // -------------------------------------------------------------------------
@@ -97,6 +102,14 @@ public class Marcador {
      */
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 
     // -------------------------------------------------------------------------

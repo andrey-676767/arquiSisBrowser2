@@ -38,7 +38,7 @@ public class MarcadorService {
     public MarcadorService(IRepositorio<Marcador> db) {
         this.db = db;
 
-        Marcador placeholder = new Marcador("", "inicio", "General");
+        Marcador placeholder = new Marcador("", "inicio", "General", "CHROME");
             marcadores = new ArbolBinario<>(new Categoria("G", placeholder));
             return;
     }
@@ -56,7 +56,7 @@ public class MarcadorService {
         ListaDoble<Marcador> todos = db.cargarTodos();
 
         if (todos.size() == 0) {
-            Marcador placeholder = new Marcador("", "inicio", "General");
+            Marcador placeholder = new Marcador("", "inicio", "General", "CHROME");
             marcadores = new ArbolBinario<>(new Categoria("G", placeholder));
             return;
         }
@@ -105,23 +105,20 @@ public class MarcadorService {
      * @param url       URL del sitio
      * @param categoria nombre de la categoría destino
      */
-    public void agregar(String titulo, String url, String categoria) {
-        String inicial = categoria.substring(0, 1).toUpperCase();
-        Categoria aux = new Categoria(inicial, null);
-
+    public void agregar(String titulo, String url, String categoria, String usuario) {
         // Verificar duplicado
-        if (marcadores.buscar(aux)) {
-            Categoria existente = marcadores.obtener(aux);
-            if (existente.obtener(titulo) != null) {
-                System.out.println("-> [MarcadorService] El marcador ya existe: " + titulo);
-                return;
-            }
+        try {
+            Marcador temporal = this.buscarMarcador(titulo);
+            temporal.toString();
+        } catch (NullPointerException e) {
+             Marcador nuevo = new Marcador(url, titulo, categoria, usuario);
+            db.guardar(nuevo);
+            insertarEnArbol(nuevo);
+            System.out.println("-> [MarcadorService] Marcador agregado: " + titulo);
+            return;
         }
 
-        Marcador nuevo = new Marcador(url, titulo, categoria);
-        db.guardar(nuevo);
-        insertarEnArbol(nuevo);
-        System.out.println("-> [MarcadorService] Marcador agregado: " + titulo);
+        System.out.println("-> [MarcadorService] El marcador ya existe: " + titulo);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.browser.repository;
 
 import com.browser.model.Marcador;
 import com.browser.structures.ListaDoble;
+import com.browser.services.UsuarioService;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -154,6 +155,7 @@ public class JSONRepo implements IRepositorio<Marcador> {
               .append("    \"titulo\": \"").append(escapar(m.getTitulo())).append("\",\n")
               .append("    \"url\": \"").append(escapar(m.getUrl())).append("\",\n")
               .append("    \"categoria\": \"").append(escapar(m.getCategoria())).append("\"\n")
+              .append("    \"user\": \"").append(escapar(m.getUsuario())).append("\"\n")
               .append("  }");
             if (i < lista.size() - 1) sb.append(",");
             sb.append("\n");
@@ -179,6 +181,7 @@ public class JSONRepo implements IRepositorio<Marcador> {
      *         o el archivo está vacío
      */
     private ListaDoble<Marcador> leerArchivo() {
+        
         ListaDoble<Marcador> lista = new ListaDoble<>();
         try {
             String contenido = new String(
@@ -195,9 +198,10 @@ public class JSONRepo implements IRepositorio<Marcador> {
                 String titulo = extraerValor(bloque, "titulo");
                 String url = extraerValor(bloque, "url");
                 String categoria = extraerValor(bloque, "categoria");
+                String usuario = extraerValor(bloque, "usuario");
 
-                if (titulo != null && url != null && categoria != null) {
-                    lista.insertar(new Marcador(url, titulo, categoria));
+                if (titulo != null && url != null && categoria != null && usuario != null /*usuario == usuarios.getUsuarioActual().getNombre()*/) {
+                    lista.insertar(new Marcador(url, titulo, categoria, usuario));
                 }
                 pos = fin + 1;
             }
@@ -206,6 +210,8 @@ public class JSONRepo implements IRepositorio<Marcador> {
         }
         return lista;
     }
+
+    // TODO: Implementar marcadores por usuario 
 
     /**
      * Extrae el valor de una clave JSON del formato {@code "clave": "valor"}

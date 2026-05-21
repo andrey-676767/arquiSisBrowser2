@@ -168,6 +168,11 @@ public class BrowserController {
         boolean volver = false;
 
         while (!volver) {
+            if (!usuarios.haySesionActiva()) {
+                System.out.println("No puede administrar marcadores sin una cuenta.");
+                return;
+            }
+
             System.out.println("\n    === Administrador de Marcadores ===");
             marcadores.mostrarMarcadores();
             System.out.println("""
@@ -204,9 +209,13 @@ public class BrowserController {
         String url = scanner.nextLine().trim();
         System.out.print("Categoría: ");
         String categoria = scanner.nextLine().trim();
-
-        marcadores.agregar(titulo, url, categoria);
-        System.out.println("Marcador guardado.");
+        try {
+            Marcador existente = marcadores.buscarMarcador(titulo);
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        
+        marcadores.agregar(titulo, url, categoria, usuarios.getUsuarioActual().getNombre());
     }
 
     /**
@@ -233,10 +242,16 @@ public class BrowserController {
         System.out.println("Mostrando marcadores (agrupados por categoría):");
         marcadores.mostrarMarcadores();
 
-        System.out.print("Categoría del marcador a editar: ");
-        String cat = scanner.nextLine().trim();
         System.out.print("Título del marcador a editar: ");
         String titulo = scanner.nextLine().trim();
+        String url = "";
+        try {
+            url = marcadores.buscarMarcador(titulo).getUrl();
+        } catch (NullPointerException e) {
+            System.out.println("Marcador no encontrado. Regresando");
+                        return;
+        }
+        String cat = marcadores.buscarMarcador(titulo).getCategoria();
 
         System.out.println("""
                 ¿Qué desea editar?
@@ -248,15 +263,15 @@ public class BrowserController {
         switch (op) {
             case 1 -> {
                 System.out.print("Nuevo título: ");
-                marcadores.editar(titulo, scanner.nextLine().trim(), "titulo", cat);
+                marcadores.editar(titulo, scanner.nextLine().trim(), url, cat);
             }
             case 2 -> {
                 System.out.print("Nueva URL: ");
-                marcadores.editar(titulo, titulo, "url", scanner.nextLine().trim());
+                marcadores.editar(titulo, titulo, scanner.nextLine().trim(), cat);
             }
             case 3 -> {
                 System.out.print("Nueva categoría: ");
-                marcadores.editar(titulo, cat, "categoria", scanner.nextLine().trim());
+                marcadores.editar(titulo, titulo, url, scanner.nextLine().trim());
             }
         }
     }
@@ -332,6 +347,10 @@ public class BrowserController {
      * solicitando título y categoría al usuario.
      */
     private void guardarTabEnMarcadores() {
+        if (!usuarios.haySesionActiva()) {
+            System.out.println("Inicie sesión para guardar marcadores.");
+            return;
+        }
         String url = tabHistory.getUrl();
         if (url == null || url.isBlank()) {
             System.out.println("La pestaña actual no tiene URL guardada.");
@@ -342,7 +361,7 @@ public class BrowserController {
         String titulo = scanner.nextLine().trim();
         System.out.print("Categoría: ");
         String categoria = scanner.nextLine().trim();
-        marcadores.agregar(titulo, url, categoria);
+        marcadores.agregar(titulo, url, categoria, usuarios.getUsuarioActual().getNombre());
         System.out.println("Marcador guardado.");
     }
 
@@ -420,7 +439,7 @@ public class BrowserController {
                 case 0 -> exito = true;
                 case 1 -> {
                     if (usuarios.haySesionActiva()) {
-                        System.out.println("Sesión activa, cerrándola...");
+                        System.out.println("Comprobando sesión...");
                         usuarios.cerrarSesion();
                     }
                     System.out.println("\n    === Inicio de Sesión ===");
@@ -431,6 +450,9 @@ public class BrowserController {
 
                     try {
                         usuarios.iniciarSesion(user, pass);
+                        if (usuarios.haySesionActiva()) {
+                            marcadores.cargarEnArbol();
+                        }
                         exito = true;
                     } catch (Exception e) {
                         System.out.println("Credenciales incorrectas. Intente de nuevo.");
