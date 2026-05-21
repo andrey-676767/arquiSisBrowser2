@@ -438,7 +438,22 @@ public class BrowserController {
                     exito = true;
                 }
                 case 3 -> {
-                    usuarios.registrarse()
+                    System.out.println("\n    === Registro ===");
+                    System.out.print("Usuario: ");
+                    String user = scanner.nextLine().trim();
+                    System.out.print("Contraseña: ");
+                    String pass = scanner.nextLine().trim();
+
+                    try {
+                        usuarios.registrarse(user, pass);
+                        System.out.println("Registrado correctamente.");
+                        marcadores.cargarEnArbol();
+                        exito = true;
+                    } catch (Exception e) {
+                        System.out.println("Error. Intente de nuevo.");
+                        System.out.println("(Escriba 'cancelar' en usuario para volver)");
+                        if (user.equalsIgnoreCase("cancelar")) return;
+                    }
                 }
                 default -> System.out.println("Opción no válida.");
             }
