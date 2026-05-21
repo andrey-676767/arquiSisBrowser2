@@ -72,7 +72,7 @@ public interface ITabManager {
      *
      * @return {@link ListaDoble} con todos los grupos; nunca {@code null}.
      */
-    IEstructuraDeDatos<Tab> getGrupos();
+    IEstructuraDeDatos<IEstructuraDeDatos<Tab>> getGrupos();
 
     /**
      * Retorna el número de grupos de pestañas existentes.
