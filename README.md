@@ -148,7 +148,134 @@ Archivo | Formato| Gestiona| Comportamiento|
 `marcadores.json`| JSON| Marcadores y categorías| Se lee y escribe en la raíz 	 del proyecto. Debe existir al iniciar (ya incluido con datos de ejemplo).|
 `navegador.db`| SQLite| Usuarios y contraseñas|Se crea automáticamente en la raíz si no existe.
 
-> Ambos archivos deben estar en el **directorio de trabajo** desde donde se ejecuta la aplicación (normalmente la raíz del proyecto). En IntelliJ / VS Code esto es automático; en la terminal, ejecuta desde la carpeta raíz.
+# Ejemplos de llamadas a las APIs
+
+---
+
+## 1. API HTTP — `ip-api.com` (via `HTTPValidator`)
+
+El proyecto usa `java.net.http.HttpClient` (Java 11+) para consultar la API pública `ip-api.com`. No requiere API key.
+
+### Endpoint
+
+```
+GET http://ip-api.com/json/{dominio}?fields=status,country,isp
+```
+
+### Ejemplo 1 — Consultar info del servidor de una URL
+
+```java
+// Instanciar el validador (reutiliza el HttpClient internamente)
+IURLValidator validator = new HTTPValidator();
+
+// Consulta: extrae el dominio de la URL y llama a la API
+String json = validator.obtenerInfoServer("https://www.google.com/search?q=java");
+
+System.out.println(json);
+// Respuesta esperada:
+// {"status":"success","country":"United States","isp":"Google LLC"}
+```
+
+### Ejemplo 2 — Verificar si una URL es accesible
+
+```java
+IURLValidator validator = new HTTPValidator();
+
+boolean accesible = validator.esAccesible("https://github.com");
+
+if (accesible) {
+    System.out.println("El sitio está en línea.");
+} else {
+    System.out.println("No se pudo alcanzar el sitio.");
+}
+```
+
+## 2. API SQLite — JDBC via `SQLiteRepository`
+
+El driver JDBC incluido es `sqlite-jdbc-3.51.1.0.jar`. La URL de conexión apunta al archivo `navegador.db` en el directorio de trabajo.
+
+### Cadena de conexión
+
+```java
+String url = "jdbc:sqlite:navegador.db";
+Connection conn = DriverManager.getConnection(url);
+```
+
+### Ejemplo 1 — Crear la tabla (se ejecuta en el constructor)
+
+```java
+String sql = "CREATE TABLE IF NOT EXISTS usuarios (" +
+             "nombre TEXT PRIMARY KEY, " +
+             "contrasena TEXT NOT NULL);";
+
+try (Connection conn = DriverManager.getConnection("jdbc:sqlite:navegador.db");
+     Statement stmt = conn.createStatement()) {
+
+    stmt.execute(sql);
+    System.out.println("Tabla 'usuarios' lista.");
+
+} catch (SQLException e) {
+    System.out.println("Error: " + e.getMessage());
+}
+```
+
+### Ejemplo 2 — Insertar un usuario (`guardar`)
+
+```java
+String sql = "INSERT OR IGNORE INTO usuarios(nombre, contrasena) VALUES(?, ?)";
+
+try (Connection conn = DriverManager.getConnection("jdbc:sqlite:navegador.db");
+     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    pstmt.setString(1, "alice");
+    pstmt.setString(2, "s3cr3t");
+    pstmt.executeUpdate();
+    // INSERT OR IGNORE: si 'alice' ya existe, no lanza excepción
+
+} catch (SQLException e) {
+    System.out.println("Error al insertar: " + e.getMessage());
+}
+```
+
+### Ejemplo 3 — Leer todos los usuarios (`cargarTodos`)
+
+```java
+String sql = "SELECT nombre, contrasena FROM usuarios";
+
+try (Connection conn = DriverManager.getConnection("jdbc:sqlite:navegador.db");
+     Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery(sql)) {
+
+    while (rs.next()) {
+        String nombre     = rs.getString("nombre");
+        String contrasena = rs.getString("contrasena");
+        System.out.println(nombre + " / " + contrasena);
+    }
+
+} catch (SQLException e) {
+    System.out.println("Error al leer: " + e.getMessage());
+}
+```
+
+### Ejemplo 4 — Eliminar un usuario (`borrar`)
+
+```java
+String sql = "DELETE FROM usuarios WHERE nombre = ?";
+
+try (Connection conn = DriverManager.getConnection("jdbc:sqlite:navegador.db");
+     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    pstmt.setString(1, "alice");
+    int filasAfectadas = pstmt.executeUpdate();
+
+    System.out.println(filasAfectadas > 0 ? "Usuario eliminado." : "No encontrado.");
+
+} catch (SQLException e) {
+    System.out.println("Error al borrar: " + e.getMessage());
+}
+```
+
+> Ambos archivos deben estar en el **directorio de trabajo** desde donde se ejecuta la aplicación (normalmente la raíz del proyecto).
 
 ----------
 > Written with [StackEdit](https://stackedit.io/).
