@@ -32,4 +32,6 @@ public interface IAutenticador {
      * debe rechazarse hasta que se invoque {@link #login} de nuevo.</p>
      */
     void logout();
+
+    void registrar(String user, String pass);
 }

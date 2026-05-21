@@ -65,7 +65,7 @@ public class Tab implements ITabHistory {
     public void setUrl(String url) {
         String[] estadoActual = this.info.clone();
         this.historialAtras.push(estadoActual);
-        this.historialAdelante.pop();
+        this.historialAdelante.limpiar();
         this.info[1] = url;
         this.info[0] = url.toUpperCase();
     }

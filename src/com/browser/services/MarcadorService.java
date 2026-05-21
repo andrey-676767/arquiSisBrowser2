@@ -37,7 +37,10 @@ public class MarcadorService {
      */
     public MarcadorService(IRepositorio<Marcador> db) {
         this.db = db;
-        cargarEnArbol();
+
+        Marcador placeholder = new Marcador("", "inicio", "General");
+            marcadores = new ArbolBinario<>(new Categoria("G", placeholder));
+            return;
     }
 
     // -------------------------------------------------------------------------
@@ -49,7 +52,7 @@ public class MarcadorService {
      * de categorías. Si el repositorio está vacío se inicializa el árbol
      * con una categoría vacía por defecto.
      */
-    private void cargarEnArbol() {
+    public void cargarEnArbol() {
         ListaDoble<Marcador> todos = db.cargarTodos();
 
         if (todos.size() == 0) {
@@ -270,4 +273,5 @@ public class MarcadorService {
     public void mostrarMarcadores() {
         marcadores.recorrerInOrden(marcadores.raiz);
     }
+    
 }

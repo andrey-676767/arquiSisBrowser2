@@ -401,22 +401,49 @@ public class BrowserController {
         boolean exito = false;
 
         while (!exito) {
-            System.out.println("\n    === Inicio de Sesión ===");
-            System.out.print("Usuario: ");
-            String user = scanner.nextLine().trim();
-            System.out.print("Contraseña: ");
-            String pass = scanner.nextLine().trim();
+            System.out.println("\n    === Administrador de Sesión ===");
+            System.out.println("Grupos activos: " + tabManager.getCantidadGrupos());
+            System.out.println("""
+                    
+                    0. Volver.
+                    1. Iniciar Sesión.
+                    2. Cerrar Sesión.
+                    3. Registrarse.
+                    4. Borrar usuario.
+                    """);
+            
+            int op = leerInt(0, 3);
+            switch (op) {
+                case 0 -> exito = true;
+                case 1 -> {
+                    System.out.println("\n    === Inicio de Sesión ===");
+                    System.out.print("Usuario: ");
+                    String user = scanner.nextLine().trim();
+                    System.out.print("Contraseña: ");
+                    String pass = scanner.nextLine().trim();
 
-            try {
-                usuarios.iniciarSesion(user, pass);
-                System.out.println("Sesión iniciada correctamente.");
-                marcadores.cargarEnArbol();
-                exito = true;
-            } catch (Exception e) {
-                System.out.println("Credenciales incorrectas. Intente de nuevo.");
-                System.out.println("(Escriba 'cancelar' en usuario para volver)");
-                if (user.equalsIgnoreCase("cancelar")) return;
+                    try {
+                        usuarios.iniciarSesion(user, pass);
+                        System.out.println("Sesión iniciada correctamente.");
+                        marcadores.cargarEnArbol();
+                        exito = true;
+                    } catch (Exception e) {
+                        System.out.println("Credenciales incorrectas. Intente de nuevo.");
+                        System.out.println("(Escriba 'cancelar' en usuario para volver)");
+                        if (user.equalsIgnoreCase("cancelar")) return;
+                    }
+                }
+                case 2 -> {
+                    usuarios.cerrarSesion();
+                    exito = true;
+                }
+                case 3 -> {
+                    usuarios.registrarse()
+                }
+                default -> System.out.println("Opción no válida.");
             }
+
+            
         }
     }
 

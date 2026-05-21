@@ -99,8 +99,8 @@ public class App {
      */
     @SuppressWarnings("unchecked")
     private void crearRepos() {
-        repoMarcadores = new JSONRepo("src");
-        repoUsuarios   = new SQLiteRepository("");
+        repoMarcadores = new JSONRepo("marcadores.json");
+        repoUsuarios   = new SQLiteRepository("jdbc:sqlite:navegador.db");
     }
 
     /**

@@ -55,4 +55,6 @@ public interface IEstructuraDeDatos<T> {
     boolean empty();
 
     int cantidad();
+
+    void limpiar();
 }

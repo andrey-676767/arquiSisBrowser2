@@ -33,6 +33,12 @@ public class UValidator implements IAutenticador {
         this.usuarioActual = null;
     }
 
+    @Override
+    public void registrar(String user, String pass) {
+        Usuario usuario = new Usuario(user, pass);
+        this.repositorio.guardar(usuario);
+    }
+
     /**
      * Inicia sesión verificando que exista un usuario con el nombre y
      * contraseña indicados en el repositorio.
@@ -47,6 +53,9 @@ public class UValidator implements IAutenticador {
     @Override
     public void login(String user, String pass) {
         ListaDoble<Usuario> usuarios = repositorio.cargarTodos();
+        if (usuarios.empty()) {
+            System.out.println("-> [AUTH] ¡No hay usuarios registrados!");
+        }
         for (int i = 0; i < usuarios.size(); i++) {
             Usuario u = usuarios.obtener(i);
             if (u.getNombre().equals(user) && u.getContrasena().equals(pass)) {
@@ -55,7 +64,7 @@ public class UValidator implements IAutenticador {
                 return;
             }
         }
-        System.out.println("-> [AUTH] Credenciales incorrectas.");
+        System.out.println("-> [AUTH] Credenciales incorrectas o inexistentes.");
     }
 
     /**

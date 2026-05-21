@@ -49,6 +49,10 @@ public class UsuarioService {
     // Autenticación
     // -------------------------------------------------------------------------
 
+    public void registrarse(String user, String pass) {
+        autenticador.registrar(user, pass);
+    }
+
     /**
      * Delega el inicio de sesión al {@link IAutenticador} y,
      * si tiene éxito, actualiza la referencia de {@code usuarioActual}.
