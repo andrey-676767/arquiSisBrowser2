@@ -75,6 +75,8 @@ Clonar o descargar el archivo zip del proyecto.
 4.  **Clase principal:** `com.browser.Main`
 5.  **Ejecutar:** clic derecho sobre `Main.java → Run 'Main.main()'`
 
+> Si ya aparece la librería agregada, quítala y vuélvela a agregar.
+
 > Los archivos `.iml` ya están configurados; si el IDE pide regenerarlos, acepta.
 
 ----------
@@ -145,7 +147,7 @@ java -cp "out/production:sqlite-jdbc-3.51.1.0.jar" com.browser.Main
 
 Archivo | Formato| Gestiona| Comportamiento|
 --------| -------| --------|---------------|
-`marcadores.json`| JSON| Marcadores y categorías| Se lee y escribe en la raíz 	 del proyecto. Debe existir al iniciar (ya incluido con datos de ejemplo).|
+`marcadores.json`| JSON| Marcadores y categorías| Se lee y escribe en la raíz 	 del proyecto.|
 `navegador.db`| SQLite| Usuarios y contraseñas|Se crea automáticamente en la raíz si no existe.
 
 # Ejemplos de llamadas a las APIs
