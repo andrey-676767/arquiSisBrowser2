@@ -135,8 +135,7 @@ public class App {
                 tabService,     // ITabManager
                 tabService,     // ITabHistory (mismo objeto, doble rol)
                 descargaManager,
-                urlValidator,
-                repoMarcadores
+                urlValidator
         );
         controller.ejecutar();
     }
