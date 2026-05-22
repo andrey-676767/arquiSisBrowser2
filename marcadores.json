@@ -1,0 +1,26 @@
+[
+  {
+    "titulo": "Pepito Industries",
+    "url": "pepitoandco.com",
+    "categoria": "Business",
+    "user": "pepito"
+  },
+  {
+    "titulo": "AWS Instructure",
+    "url": "instructure.aws.us-east-1",
+    "categoria": "Learning",
+    "user": "pepito"
+  },
+  {
+    "titulo": "Marca",
+    "url": "marca.com",
+    "categoria": "depor",
+    "user": "Andrey_M"
+  },
+  {
+    "titulo": "Teo",
+    "url": "teo.com",
+    "categoria": "teo",
+    "user": "teo"
+  }
+]

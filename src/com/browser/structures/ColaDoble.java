@@ -102,9 +102,9 @@ public class ColaDoble<T> {
         return null;
     }
 
-    private void redimensionar(){
+    /*private void redimensionar(){
         //No se como es que se tiene que implementar (preguntarle al profesor)
-    }
+    }*/
 
     @Override
     public String toString(){
