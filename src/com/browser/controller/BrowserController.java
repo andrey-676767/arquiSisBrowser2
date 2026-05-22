@@ -7,7 +7,6 @@ import com.browser.services.MarcadorService;
 import com.browser.services.UsuarioService;
 import com.browser.model.tabs.ITabHistory;
 import com.browser.model.tabs.ITabManager;
-import com.browser.repository.IRepositorio;
 import com.browser.validator.IURLValidator;
 
 import java.util.InputMismatchException;
@@ -86,8 +85,7 @@ public class BrowserController {
             ITabManager tabManager,
             ITabHistory tabHistory,
             IDescargaManager descargaManager,
-            IURLValidator validator,
-            IRepositorio<Marcador> repoMarcadores) {
+            IURLValidator validator) {
 
         this.marcadores      = marcadores;
         this.usuarios        = usuarios;
